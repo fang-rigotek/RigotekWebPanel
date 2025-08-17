@@ -1,0 +1,59 @@
+<!doctype html>
+<!--
+  文档类型声明：使用 HTML 标准模式，避免浏览器兼容性怪异行为
+  选择 doctype + <meta charset="utf-8"> 能确保极速、稳定的解析体验
+-->
+<html lang="zh-CN">
+  <head>
+    <!--
+      字符集：统一使用 UTF-8，避免中文注释/文案出现乱码
+    -->
+    <meta charset="utf-8" />
+    <!--
+      视口配置：使移动端以设备宽度渲染，并禁止初始缩放异常
+      minimal-ui 在多数现代浏览器已不再需要，因此不添加，保持最简
+    -->
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!--
+      主题色：在部分系统/浏览器地址栏、任务栏显示颜色（可在品牌色确定后再调整）
+    -->
+    <meta name="theme-color" content="#ffffff" />
+    <!--
+      SEO/分享描述：后续可由路由或实际页面动态覆盖，这里给出基础占位
+    -->
+    <meta name="description" content="RigoTek Web Panel" />
+    <!--
+      色彩方案提示：告知浏览器我们同时支持明暗模式（后续在 CSS 中具体实现）
+      优点：在 prefers-color-scheme = dark 的系统上默认走暗色 UI，降低“白屏闪”的时间
+    -->
+    <meta name="color-scheme" content="light dark" />
+    <!--
+      文档标题：后续可由路由或应用逻辑动态修改（例如 document.title = 'xxx'）
+    -->
+    <title>RigoTek Web Panel</title>
+
+    <!--
+      站点图标（可选）：
+      - 如果稍后我们在 public/ 里放了 favicon.svg，这里就能被自动服务
+      - 若暂无图标，这行不会报错；也可先注释掉，等图标确定再启用
+    -->
+    <link rel="icon" href="/favicon.svg" />
+  </head>
+
+  <body>
+    <!--
+      应用挂载点：
+      - Preact 根组件会被渲染到这个 <div id="app"> 中
+      - 保持 body 极简，将布局与全局样式放到 src/styles/base.css（由 src/main.tsx 引入）
+    -->
+    <div id="app"></div>
+
+    <!--
+      入口脚本（ES Module）：
+      - 使用 Vite 的原生 ESM 加载，指向 src/main.tsx（TypeScript + JSX）
+      - Vite Dev Server 会在开发时做即时编译与 HMR（热更新）
+      - 生产构建时，Vite 会自动进行依赖分包与资源指纹
+    -->
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

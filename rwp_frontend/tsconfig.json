@@ -1,0 +1,34 @@
+{
+  "compilerOptions": {
+    /* 基础设置 */
+    "target": "ES2022",                  // 编译目标，Node 22 & Vite 都支持 ES2022
+    "module": "ESNext",                  // 使用最新模块系统
+    "lib": ["ES2022", "DOM", "DOM.Iterable"], // 浏览器和现代 JS 支持
+    "moduleResolution": "bundler",       // 配合 Vite 使用 bundler 解析
+    "allowImportingTsExtensions": false, // 禁止显式写 .ts 扩展名，保持规范
+    "types": ["node"],                   // Node.js 类型定义
+
+    /* JSX/TSX 设置 */
+    "jsx": "preserve",                   // 保留 JSX 交给 Vite/Preact 处理
+    "jsxImportSource": "preact",         // 告诉 TS 用 preact 的 JSX runtime
+    "isolatedModules": true,             // 保证单文件能独立编译（配合 Vite）
+
+    /* 严格模式（保证质量） */
+    "strict": true,                      // 开启所有严格检查
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "forceConsistentCasingInFileNames": true,
+
+    /* 输出控制 */
+    "noEmit": true,                      // 不生成 js，交给 Vite 处理
+    "skipLibCheck": true,                // 跳过依赖库类型检查，加快编译
+
+    /* 路径别名 */
+    "baseUrl": "./src",
+    "paths": {
+      "@/*": ["./*"]                     // 使用 @/ 来引用 src 下的文件
+    }
+  },
+  "include": ["src"],
+  "exclude": ["node_modules", "dist", "build"]
+}
