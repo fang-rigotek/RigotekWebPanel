@@ -1,38 +1,69 @@
 // src/utils/dev-tools.ts
 // 职责：开发期工具（移动端调试台 + 统一开发日志）
-// 设计：
-// - 仅在 import.meta.env.DEV 为 true 时生效；生产环境直接 no-op，Vite 会摇树裁剪。
-// - eruda 采用动态导入（import('eruda')），避免进入生产构建。
-// - 移动端 UA 才尝试加载 eruda，且在浏览器空闲时机再初始化，降低首屏干扰。
+// 更新点：改进“移动端检测”策略，兼容 iPadOS 13+ 桌面UA（Macintosh + 多触点）
 
-/** 简单的移动端 UA 判断（足够用于启/不启 eruda 的分支） */
-function isMobileUA(ua: string): boolean {
-  return /Mobile|Android|iP(ad|hone|od)|IEMobile|BlackBerry|Opera Mini/i.test(ua);
+/** 开发期统一日志（生产静默） */
+export function devLog(...args: unknown[]): void {
+  if (!import.meta.env.DEV) return;
+  try {
+    if (typeof console !== 'undefined' && typeof console.log === 'function') {
+      console.log('[RWP]', ...args);
+    }
+  } catch {
+    /* ignore */
+  }
 }
 
-/** 安全获取 UA（SSR/旧环境容错） */
-function getUA(): string {
+/** 安全获取 UA / 平台信息 */
+function getEnv() {
+  let ua = '';
+  let platform = '';
+  let maxTouchPoints = 0;
   try {
-    return typeof navigator !== 'undefined' ? navigator.userAgent || '' : '';
+    ua = typeof navigator !== 'undefined' ? navigator.userAgent || '' : '';
+    platform = typeof navigator !== 'undefined' ? (navigator as any).platform || '' : '';
+    maxTouchPoints = typeof navigator !== 'undefined' ? (navigator as any).maxTouchPoints || 0 : 0;
   } catch {
-    return '';
+    /* ignore */
   }
+  return { ua, platform, maxTouchPoints };
+}
+
+/**
+ * 判断是否为“移动端/类移动端”环境（用于决定是否启用 eruda）
+ * - 传统 UA 关键字：Mobile / Android / iPhone / iPod / iPad / IEMobile / BlackBerry / Opera Mini
+ * - iPadOS 13+ 桌面模式：UA 伪装成 "Macintosh"；用 (platform === 'MacIntel' && maxTouchPoints > 1) 区分
+ */
+function isMobileLike(): boolean {
+  const { ua, platform, maxTouchPoints } = getEnv();
+
+  // 1) 明确的移动端关键字
+  if (/\b(Mobile|Android|iPhone|iPod|iPad|IEMobile|BlackBerry|Opera Mini)\b/i.test(ua)) {
+    return true;
+  }
+
+  // 2) iPadOS 13+ 桌面模式：平台为 MacIntel，但支持多触点
+  //    参考：Safari/iPadOS 将 UA 伪装为桌面 Safari；使用触控点数量识别
+  if (/Mac/i.test(platform) && maxTouchPoints > 1) {
+    return true;
+  }
+
+  return false;
 }
 
 /**
  * 初始化移动端调试台（eruda）
- * - 仅 DEV + 移动端 UA 才会尝试加载；
- * - 采用 requestIdleCallback（有则用，无则 setTimeout）在空闲时加载，避免阻塞首屏；
- * - 任何报错都被吞掉，不影响正常页面。
+ * - 仅 DEV + 移动端/类移动端 才会尝试加载
+ * - 动态导入，失败静默
+ * - 避免重复初始化
  */
 export function initMobileConsole(): void {
   if (!import.meta.env.DEV) return;
 
-  const ua = getUA();
-  if (!isMobileUA(ua)) {
-    // 桌面端不启用移动调试台
-    return;
-  }
+  const mobile = isMobileLike();
+  devLog('[dev-tools] mobileLike =', mobile);
+
+  if (!mobile) return;
 
   const schedule =
     (window as any).requestIdleCallback ||
@@ -40,36 +71,25 @@ export function initMobileConsole(): void {
 
   schedule(async () => {
     try {
-      // 动态导入（仅 DEV 时走到这里）
-      const mod = await import('eruda');
-      // 若已存在就复用
-      const eruda = (mod as any).default || mod;
-      if (!(eruda as any)._isInit) {
-        eruda.init();
-        (eruda as any)._isInit = true; // 标记，避免重复 init
+      // 已存在实例则跳过
+      const w = window as any;
+      if (w.eruda && typeof w.eruda.get === 'function') {
+        devLog('[dev-tools] eruda already present');
+        return;
       }
-      devLog('[dev-tools] eruda initialized');
+
+      const mod = await import('eruda');
+      const eruda = (mod as any).default || mod;
+
+      if (!(eruda as any)._isInit) {
+        eruda.init();                 // 打开控制台
+        (eruda as any)._isInit = true;
+        devLog('[dev-tools] eruda initialized');
+      } else {
+        devLog('[dev-tools] eruda already initialized (flag)');
+      }
     } catch (err) {
-      // 加载失败不影响业务
-      // 仍然用 devLog 输出（在 DEV 下可见）
       devLog('[dev-tools] eruda load failed:', err);
     }
   });
-}
-
-/**
- * 开发期统一日志
- * - 生产环境静默（不输出）
- * - 用统一前缀便于过滤
- */
-export function devLog(...args: unknown[]): void {
-  if (!import.meta.env.DEV) return;
-  try {
-    // 避免 console 在极端环境不存在导致异常
-    if (typeof console !== 'undefined' && typeof console.log === 'function') {
-      console.log('[RWP]', ...args);
-    }
-  } catch {
-    // 忽略任何日志异常
-  }
 }
