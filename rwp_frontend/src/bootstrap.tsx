@@ -2,7 +2,7 @@
 import { render } from 'preact';
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 
-import Boot from './pages/Boot';
+import Boot from './runtime/boot-controller';
 import Login from './pages/Login';
 import App from './App';
 import { devLog } from './utils/dev-tools';
