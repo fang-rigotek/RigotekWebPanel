@@ -12,6 +12,22 @@
   box-sizing: border-box; /* ✅ 全局统一 border-box，杜绝 padding 造成的意外溢出 */
 }
 
+/* 在文件开头或 :root 处补充以下内容 */
+
+:root {
+  /* 主题变量：浅色默认 */
+  --bg: #ffffff;
+  --fg: #000000;
+  color-scheme: light dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #000000;
+    --fg: #ffffff;
+  }
+}
+
 html, body {
   min-width: 320px;
   width: 100%;

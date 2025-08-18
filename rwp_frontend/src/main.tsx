@@ -1,19 +1,11 @@
-// src/main.tsx
-import { render } from 'preact';
-import '@/styles/base.css';
-import { LoadingLoop } from '../rigotek-web-ui/icons';
-import { initMobileConsole, devLog } from './utils/dev-tools';
-initMobileConsole();
-
-const ICON_SIZE = 24;
-
+// src/main.tsx（仅展示变更的样式块，其他内容保持为你当前版本）
 function Splash() {
   return (
     <div
-      id="rwp-splash"                   // ← 用于后续在就绪后移除 Splash
+      id="rwp-splash"
       style={{
-        backgroundColor: '#000',
-        color: '#fff',
+        backgroundColor: 'var(--bg)',  // ← 改
+        color: 'var(--fg)',            // ← 改
         minHeight: '100dvh',
         display: 'grid',
         placeItems: 'center',
@@ -36,33 +28,16 @@ function Splash() {
           }}
         >
           <span
-          id="rwp-splash-icon"
-            style={{
-              display: 'inline-flex',
-              width: `${ICON_SIZE}px`,
-              height: `${ICON_SIZE}px`,
-            }}
+            id="rwp-splash-icon"
+            style={{ display: 'inline-flex', width: '24px', height: '24px' }}
           >
-            <LoadingLoop size={ICON_SIZE} />
+            <LoadingLoop size={24} />
           </span>
-          <span
-id="rwp-splash-text" 
- style={{ whiteSpace: 'normal' }}>Loading…</span>
+          <span id="rwp-splash-text" style={{ whiteSpace: 'normal' }}>
+            Loading…
+          </span>
         </div>
       </div>
     </div>
   );
 }
-
-const mountNode = document.getElementById('app') as HTMLElement;
-render(<Splash />, mountNode);
-devLog('[main] splash rendered, loading bootstrap…');
-
-import('./bootstrap')
-  .then((mod) => {
-    devLog('[main] bootstrap loaded');
-    if (typeof mod.mountApp === 'function') mod.mountApp(mountNode);
-    else if (typeof mod.default === 'function') (mod.default as (el: HTMLElement) => void)(mountNode);
-    else if (import.meta.env.DEV) console.warn('[main] bootstrap has no mount function');
-  })
-  .catch((err) => { if (import.meta.env.DEV) console.error('[main] bootstrap load failed:', err); });
