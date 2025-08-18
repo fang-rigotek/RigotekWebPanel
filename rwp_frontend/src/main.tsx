@@ -1,7 +1,7 @@
 // src/main.tsx
 import { render } from 'preact';
 import './styles/base.css';                 // ← 相对路径，避免别名失效
-import { LoadingLoop } from '../rigotek-web-ui/icons';
+import { LoadingLoop } from './components/icons';
 import { initMobileConsole } from './utils/dev-tools';
 
 initMobileConsole();
