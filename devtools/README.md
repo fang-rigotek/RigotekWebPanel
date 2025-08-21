@@ -1,6 +1,6 @@
 # 开发环境维护脚本
 
-## 📌 Windows 使用说明
+## Windows 使用说明
 
 进入 `devtools/` 目录后，在 PowerShell 中执行以下命令即可。  
 （如遇权限问题，可加上 `-ExecutionPolicy Bypass` 参数）
@@ -52,5 +52,3 @@ powershell -ExecutionPolicy Bypass -File .\win-enable-autostart.ps1
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\win-disable-autostart.ps1
 ```
-
----
