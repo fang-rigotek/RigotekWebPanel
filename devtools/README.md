@@ -1,11 +1,11 @@
 # 开发环境维护脚本
 
-## Windows 使用说明
+## Windows
 
 在 `devtools/` 目录下使用带有管理员权限的 PowerShell 执行以下命令即可。  
-（如遇权限问题，可以尝试加上 `-ExecutionPolicy Bypass` 参数）
 
 ### 1. 配置开发环境
+
 安装 Node.js (LTS)、启用 pnpm，并按锁文件安装依赖：
 
 ```powershell
