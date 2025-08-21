@@ -2,8 +2,8 @@
 
 ## Windows 使用说明
 
-进入 `devtools/` 目录后，在 PowerShell 中执行以下命令即可。  
-（如遇权限问题，可加上 `-ExecutionPolicy Bypass` 参数）
+在 `devtools/` 目录下使用 PowerShell 执行以下命令即可。  
+（如遇权限问题，尝试加上 `-ExecutionPolicy Bypass` 参数）
 
 ### 1. 配置开发环境
 安装 Node.js (LTS)、启用 pnpm，并按锁文件安装依赖：
@@ -21,7 +21,7 @@ pnpm dev
 
 ---
 
-### 2. 清理开发环境
+### 2. 卸载开发环境
 
 清理 `node_modules` 和 pnpm 缓存（可选卸载 Node.js）：
 
