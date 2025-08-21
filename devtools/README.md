@@ -21,21 +21,7 @@ pnpm dev
 
 ---
 
-### 2. 卸载开发环境
-
-清理 `node_modules` 和 pnpm 缓存（可选卸载 Node.js）：
-
-```powershell
-# 只清理依赖
-powershell -ExecutionPolicy Bypass -File .\win-cleanup.ps1
-
-# 清理依赖 + 卸载 Node.js
-powershell -ExecutionPolicy Bypass -File .\win-cleanup.ps1 -UninstallNode
-```
-
----
-
-### 3. 添加开机自启
+### 2. 添加开机自启
 
 注册一个计划任务，在用户登录时 **静默后台** 启动 Vite 开发服务：
 
@@ -45,7 +31,7 @@ powershell -ExecutionPolicy Bypass -File .\win-enable-autostart.ps1
 
 ---
 
-### 4. 移除开机自启
+### 3. 移除开机自启
 
 删除前面注册的计划任务：
 
@@ -54,4 +40,18 @@ powershell -ExecutionPolicy Bypass -File .\win-disable-autostart.ps1
 
 # 检查任务是否存在：
 schtasks /Query /TN "RigotekWebPanel-Dev"
+```
+
+---
+
+### 4. 卸载开发环境
+
+清理 `node_modules` 和 pnpm 缓存（可选卸载 Node.js）：
+
+```powershell
+# 只清理依赖
+powershell -ExecutionPolicy Bypass -File .\win-cleanup.ps1
+
+# 清理依赖 + 卸载 Node.js
+powershell -ExecutionPolicy Bypass -File .\win-cleanup.ps1 -UninstallNode
 ```
