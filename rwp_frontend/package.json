@@ -10,13 +10,13 @@
     "lint": "tsc --noEmit"
   },
   "dependencies": {
-    "preact": "10.27.0"
+    "preact": "10.27.1"
   },
   "devDependencies": {
     "@preact/preset-vite": "2.10.2",
     "@types/node": "24.3.0",
     "eruda": "^3.4.3",
     "typescript": "5.9.2",
-    "vite": "7.1.2"
+    "vite": "7.1.3"
   }
 }
