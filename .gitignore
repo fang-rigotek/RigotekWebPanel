@@ -23,9 +23,13 @@ Thumbs.db
 *.swp
 .idea/
 .vscode/
+*.code-workspace
 
 # Vite cache
 rwp_frontend/.vite
 
 # TypeScript build cache
 rwp_frontend/tsconfig.tsbuildinfo
+
+# Devtools
+.generated/
