@@ -32,4 +32,4 @@ rwp_frontend/.vite
 rwp_frontend/tsconfig.tsbuildinfo
 
 # Devtools
-.generated/
+devtools/.generated
