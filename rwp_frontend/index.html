@@ -3,18 +3,17 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light dark" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <title>Rigotek Web Panel</title>
-
-    <!-- 告诉浏览器支持浅/深色 -->
-    <style>
-      :root { color-scheme: light dark; }
-    </style>
-
-    <!-- 单一 SVG favicon，内部自带浅/深色适配；?v=2 用于刷新缓存 -->
-    <link rel="icon" href="/favicon.svg?v=2" type="image/svg+xml" />
   </head>
   <body>
-    <div id="app"></div>
-    <script type="module" src="/src/main.tsx"></script>
+    <noscript>
+      <meta http-equiv="refresh" content="0; url=/errors/noscript.html" />
+    </noscript>
+    <!-- 应用挂载点 -->
+    <div id="root"></div>
+    <!-- 入口脚本 -->
+    <script type="module" src="./src/bootstrap.tsx"></script>
   </body>
 </html>
