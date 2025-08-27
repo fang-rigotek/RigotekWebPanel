@@ -1,7 +1,36 @@
 /* 
   rwp_frontend/public/styles/base.css
-  全局基础样式：保证应用在不同页面（动态/静态）下的基本一致性
+  全局基础样式：字体、排版、主题兜底
 */
+
+/* 默认浅色主题 */
+:root {
+  --bg: #fff;
+  --fg: #000;
+  --icon-color: #000;
+  --icon-size: 24px;
+}
+
+/* 跟随系统暗色模式 */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #000;
+    --fg: #fff;
+    --icon-color: #fff;
+  }
+}
+
+/* 手动覆盖（可在 <body> 上加 data-theme="light"/"dark"） */
+[data-theme="light"] {
+  --bg: #fff;
+  --fg: #000;
+  --icon-color: #000;
+}
+[data-theme="dark"] {
+  --bg: #000;
+  --fg: #fff;
+  --icon-color: #fff;
+}
 
 html, body {
   min-width: 320px;
@@ -9,8 +38,21 @@ html, body {
   margin: 0;
   padding: 0;
   font-family: sans-serif;
+  line-height: 1.4;
+  overflow-x: auto;
+  overflow-wrap: anywhere;
+
+  background-color: var(--bg);
+  color: var(--fg);
 }
 
 *, *::before, *::after {
-  box-sizing: border-box; /* 避免 padding/边框导致意外溢出 */
+  box-sizing: border-box;
+}
+
+svg, .icon {
+  width: var(--icon-size);
+  height: var(--icon-size);
+  fill: var(--icon-color);
+  color: var(--icon-color);
 }
