@@ -3,7 +3,6 @@
   全局基础样式：字体、排版、主题兜底
 */
 
-/* 默认浅色主题 */
 :root {
   --bg: #fff;
   --fg: #000;
@@ -11,7 +10,6 @@
   --icon-size: 24px;
 }
 
-/* 跟随系统暗色模式 */
 @media (prefers-color-scheme: dark) {
   :root {
     --bg: #000;
@@ -20,7 +18,6 @@
   }
 }
 
-/* 手动覆盖（可在 <body> 上加 data-theme="light"/"dark"） */
 [data-theme="light"] {
   --bg: #fff;
   --fg: #000;

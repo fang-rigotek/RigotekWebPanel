@@ -1,32 +1,32 @@
-// rigotek-web-ui/icons/LoadingLoop.tsx
-// 功能：CSS 复刻 line-md:loading-loop 图标动画（不使用 <animate> / <animateTransform>）
-// 属性：size（像素大小，默认 24）、className、style（均可选）
+// rwp_frontend/src/components/icons/LoadingLoop.tsx
+// 加载循环图标，可选动画
+// Icon from Material Line Icons by Vjacheslav Trushkin
+// https://github.com/cyberalien/line-md/blob/master/license.txt
 
 import { JSX } from 'preact';
 
 export interface LoadingLoopProps {
-  size?: number;                              // 图标尺寸，单位 px
-  className?: string;                         // 外部可追加 class
-  style?: JSX.CSSProperties;                  // 外部可覆盖样式
+  className?: string;
+  style?: JSX.CSSProperties;
+  animated?: boolean;
 }
 
 export default function LoadingLoop({
-  size = 24,
   className,
   style,
+  animated = true,
 }: LoadingLoopProps) {
   return (
     <svg
-      width={size}
-      height={size}
       viewBox="0 0 24 24"
-      aria-hidden="true"
-      class={className}
+      aria-hidden="false"
+      role="img"
+      data-animated={animated ? 'true' : 'false'}
+      class={`icon${className ? ` ${className}` : ''}`}
       style={style}
     >
-      {/* 旋转容器（绕 viewBox 中心 12,12 旋转） */}
+      <title>Loading Loop Icon</title>
       <g class="ldg-rotor">
-        {/* 弧线：先用描边动画从“未绘制”到“已绘制” */}
         <path
           class="ldg-arc"
           fill="none"
@@ -38,21 +38,17 @@ export default function LoadingLoop({
         />
       </g>
 
-      {/* 私有样式：仅作用于此组件实例 */}
       <style>
         {`
-          /* 描边显现：stroke-dashoffset 16 → 0，耗时 0.2s，保持最后状态 */
-          .ldg-arc {
-            stroke-dasharray: 16;
+          .ldg-arc { stroke-dasharray: 16; stroke-dashoffset: 0; }
+
+          [data-animated="true"] .ldg-arc {
             stroke-dashoffset: 16;
             animation: ldg-draw 0.2s forwards;
           }
-          @keyframes ldg-draw {
-            to { stroke-dashoffset: 0; }
-          }
+          @keyframes ldg-draw { to { stroke-dashoffset: 0; } }
 
-          /* 围绕 viewBox(12,12) 无限旋转，周期 1.5s，与原作一致 */
-          svg .ldg-rotor {
+          [data-animated="true"] .ldg-rotor {
             transform-box: view-box;
             transform-origin: 12px 12px;
             animation: ldg-rotate 1.5s linear infinite;
