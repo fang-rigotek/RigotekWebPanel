@@ -23,13 +23,15 @@
   --fg: #000;
   --icon-color: #000;
 }
+
 [data-theme="dark"] {
   --bg: #000;
   --fg: #fff;
   --icon-color: #fff;
 }
 
-html, body {
+html,
+body {
   min-width: 320px;
   min-height: 100dvh;
   margin: 0;
@@ -43,13 +45,17 @@ html, body {
   color: var(--fg);
 }
 
-*, *::before, *::after {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
 }
 
-svg, .icon {
+svg,
+.icon {
   width: var(--icon-size);
   height: var(--icon-size);
   fill: var(--icon-color);
   color: var(--icon-color);
+  flex: none;
 }
