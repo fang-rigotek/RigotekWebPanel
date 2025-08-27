@@ -1,0 +1,16 @@
+/* 
+  rwp_frontend/public/styles/base.css
+  全局基础样式：保证应用在不同页面（动态/静态）下的基本一致性
+*/
+
+html, body {
+  min-width: 320px;
+  min-height: 100dvh;
+  margin: 0;
+  padding: 0;
+  font-family: sans-serif;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box; /* 避免 padding/边框导致意外溢出 */
+}
