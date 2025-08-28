@@ -1,4 +1,4 @@
-// rwp_frontend/src/utils/assets.ts
+// rwp_frontend/src/utils/resource-loader
 // 按需加载静态资源
 
 // 加载 CSS

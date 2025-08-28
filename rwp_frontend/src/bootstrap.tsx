@@ -3,7 +3,7 @@
 
 import { render } from 'preact';
 import { getItem } from './utils/storage';
-import { ensureStylesheet } from './utils/assets';
+import { ensureStylesheet } from './utils/resource-loader';
 import LoadingLoop from './components/icons/LoadingLoop';
 
 // ---- 第一步：尝试读取缓存的主题设置 ----
