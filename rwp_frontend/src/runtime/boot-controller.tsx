@@ -1,9 +1,8 @@
 // src/pages/Boot.tsx
 import { useEffect } from 'preact/hooks';
 import { render } from 'preact';
-import { checkBrowserCompatibility } from '../utils/browser-checker';
-import { LoadingLoop, AlertCircle } from '../components/icons';
-import { devLog } from '../utils/dev-tools';                             // ← 相对路径
+import { checkBrowserCompatibility } from '../utils/browser-compat';
+import { LoadingLoop, AlertCircle } from '../components/icons';                      // ← 相对路径
 
 type BootPhase = 'loading' | 'checking' | 'outdated';
 const TEXTS: Record<BootPhase, string> = {
