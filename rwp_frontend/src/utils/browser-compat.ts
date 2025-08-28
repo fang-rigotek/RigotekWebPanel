@@ -1,34 +1,35 @@
 // rwp_frontend/src/utils/browser-compat.ts
-// 检测浏览器是否兼容当前前端应用（版本检查 + wasm 特征检测兜底）
-
-import init, { check_wasm_feature } from "@wasm/wasm_feature_check/pkg/wasm_feature_check.js";
+// 检测浏览器是否兼容当前前端应用（先版本检查，再按需加载 wasm 做特征兜底）
 
 /**
- * 获取浏览器的类型和版本号
+ * 获取浏览器的类型和版本号（检测顺序：Chrome → Safari → Firefox）
  */
 function getBrowserInfo(): { name: string; version: number } {
   const ua = navigator.userAgent;
 
-  if (/Chrome/.test(ua)) {
-    const match = ua.match(/Chrome\/(\d+(\.\d+)?)/);
-    return { name: "Chrome", version: match ? parseFloat(match[1]) : 0 };
+  // Chrome / Edge (Chromium 内核)
+  const chromeMatch = ua.match(/Chrome\/(\d+(\.\d+)?)/);
+  if (chromeMatch) {
+    return { name: "Chrome", version: parseFloat(chromeMatch[1]) };
   }
 
-  if (/Safari/.test(ua) && !/Chrome/.test(ua)) {
-    const match = ua.match(/Version\/(\d+(\.\d+)?)/);
-    return { name: "Safari", version: match ? parseFloat(match[1]) : 0 };
+  // Safari
+  const safariMatch = ua.match(/Version\/(\d+(\.\d+)?)/);
+  if (safariMatch && /Safari/.test(ua)) {
+    return { name: "Safari", version: parseFloat(safariMatch[1]) };
   }
 
-  if (/Firefox/.test(ua)) {
-    const match = ua.match(/Firefox\/(\d+(\.\d+)?)/);
-    return { name: "Firefox", version: match ? parseFloat(match[1]) : 0 };
+  // Firefox
+  const firefoxMatch = ua.match(/Firefox\/(\d+(\.\d+)?)/);
+  if (firefoxMatch) {
+    return { name: "Firefox", version: parseFloat(firefoxMatch[1]) };
   }
 
   return { name: "Unknown", version: 0 };
 }
 
 /**
- * 检查浏览器版本是否满足最低要求
+ * 检查浏览器版本是否满足最低要求（Chrome/Edge ≥91，Safari ≥16.4，Firefox ≥89）
  */
 function isVersionSupported(): boolean {
   const { name, version } = getBrowserInfo();
@@ -41,24 +42,23 @@ function isVersionSupported(): boolean {
 }
 
 /**
- * 调用 wasm 模块做特征检测兜底
+ * 按需加载 wasm 并做特征检测兜底（仅在版本不满足时才下载 wasm）
  */
 async function wasmFallbackCheck(): Promise<boolean> {
   try {
-    await init();
-    return check_wasm_feature();
+    const mod = await import("@wasm/wasm_feature_check/pkg/wasm_feature_check.js");
+    await mod.default(); // init()
+    return mod.check_wasm_feature();
   } catch (e) {
-    console.error("wasm feature check failed:", e);
+    console.error("WASM feature check failed:", e);
     return false;
   }
 }
 
 /**
- * 外部调用入口：检测浏览器是否兼容前端应用
+ * 外部调用入口：检测浏览器是否兼容前端应用（先版本，失败再 wasm 兜底）
  */
 export async function isBrowserCompatible(): Promise<boolean> {
-  if (isVersionSupported()) {
-    return true;
-  }
+  if (isVersionSupported()) return true;
   return await wasmFallbackCheck();
 }
