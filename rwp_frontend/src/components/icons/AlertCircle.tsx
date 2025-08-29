@@ -7,13 +7,13 @@ import { JSX } from 'preact';
 
 export interface AlertCircleProps {
   className?: string;
-  style?: JSX.CSSProperties;
+//  style?: JSX.CSSProperties;
   animated?: boolean;
 }
 
 export default function AlertCircle({
   className,
-  style,
+//  style,
   animated = true,
 }: AlertCircleProps) {
   return (
@@ -23,7 +23,7 @@ export default function AlertCircle({
       role="img"
       data-animated={animated ? 'true' : 'false'}
       class={`icon${className ? ` ${className}` : ''}`}
-      style={style}
+//      style={style}
     >
       <title>Alert Circle Icon</title>
       <g

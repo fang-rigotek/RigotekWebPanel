@@ -7,13 +7,13 @@ import { JSX } from 'preact';
 
 export interface LoadingLoopProps {
   className?: string;
-  style?: JSX.CSSProperties;
+//  style?: JSX.CSSProperties;
   animated?: boolean;
 }
 
 export default function LoadingLoop({
   className,
-  style,
+//  style,
   animated = true,
 }: LoadingLoopProps) {
   return (
@@ -23,7 +23,7 @@ export default function LoadingLoop({
       role="img"
       data-animated={animated ? 'true' : 'false'}
       class={`icon${className ? ` ${className}` : ''}`}
-      style={style}
+//      style={style}
     >
       <title>Loading Loop Icon</title>
       <g class="ldg-rotor">

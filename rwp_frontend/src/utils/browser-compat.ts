@@ -46,7 +46,7 @@ function isVersionSupported(): boolean {
  */
 async function wasmFallbackCheck(): Promise<boolean> {
   try {
-    const mod = await import("@wasm/wasm_feature_check/pkg/wasm_feature_check.js");
+    const mod = await import("@wasm/wasm_feature_check/pkg");
     await mod.default(); // init()
     return mod.check_wasm_feature();
   } catch (e) {
