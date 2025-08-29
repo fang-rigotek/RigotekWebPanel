@@ -1,10 +1,16 @@
 // src/prefs/index.ts
-// 启动阶段用到的基础偏好类型与常量（仅定义，不含读写逻辑）
-
 import type { Lang } from '../i18n';
 
-/** 主题类型（仅启动阶段使用） */
-export type Theme = 'light' | 'dark';
+/** 当前支持的主题列表（同时用于生成类型） */
+export const SUPPORTED_THEMES = ['light', 'dark'] as const;
+
+/** 主题类型（自动从 SUPPORTED_THEMES 推导） */
+export type Theme = typeof SUPPORTED_THEMES[number];
+
+/** 判断是否为支持的主题 */
+export function isSupportedTheme(theme: string): theme is Theme {
+  return (SUPPORTED_THEMES as readonly string[]).includes(theme);
+}
 
 /** 启动阶段的基础偏好（用于快速决定主题与语言） */
 export interface BootPrefs {

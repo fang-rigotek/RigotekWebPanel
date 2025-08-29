@@ -1,11 +1,11 @@
 // rwp_frontend/src/bootstrap.tsx
-// 应用引导入口（Step 1~7）
+// 应用引导入口
 
 import { render } from 'preact';
 import LoadingLoop from './components/icons/LoadingLoop';
 import { ensureStylesheet } from './utils/resource-loader';
 import { DEFAULT_LANG, isSupportedLang, type Lang } from './i18n';
-import { BOOT_PREFS_KEY, type BootPrefs, type Theme } from './prefs';
+import { BOOT_PREFS_KEY, type BootPrefs, isSupportedTheme, type Theme } from './prefs';
 
 const COMPAT_CACHE_KEY = 'rwp_compat_ok';
 
@@ -33,17 +33,19 @@ function readBootPrefs(): BootPrefs {
   }
 }
 
-/** 应用主题：缓存优先，否则跟随系统偏好；不写回缓存 */
+/** 应用主题：仅在缓存为受支持主题时强制覆盖，否则跟随系统偏好且不写入 data-theme */
 function applyTheme(prefs: BootPrefs): Theme {
-  const theme: Theme =
-    prefs.theme === 'light' || prefs.theme === 'dark'
-      ? prefs.theme
-      : matchMedia?.('(prefers-color-scheme: dark)').matches
-      ? 'dark'
-      : 'light';
-  document.body.setAttribute('data-theme', theme);
+  if (prefs.theme && isSupportedTheme(prefs.theme)) {
+    const theme = prefs.theme;
+    document.body.setAttribute('data-theme', theme);
+    return theme;
+  }
+  const systemDark = matchMedia?.('(prefers-color-scheme: dark)').matches;
+  const theme: Theme = systemDark ? 'dark' : 'light';
+  // 不设置 data-theme，交给 @media (prefers-color-scheme) 生效
   return theme;
 }
+
 
 /** 选择语言：缓存优先，其次浏览器语言（仅支持列表内），最后默认 */
 function selectLang(prefs: BootPrefs): Lang {
