@@ -3,10 +3,14 @@
   全局基础样式：字体、排版、主题兜底
 */
 
-:root {
+:root,
+[data-theme="light"] {
   --bg: #fff;
   --fg: #000;
   --icon-color: #000;
+}
+
+:root {
   --icon-size: 24px;
 }
 
@@ -16,12 +20,6 @@
     --fg: #fff;
     --icon-color: #fff;
   }
-}
-
-[data-theme="light"] {
-  --bg: #fff;
-  --fg: #000;
-  --icon-color: #000;
 }
 
 [data-theme="dark"] {

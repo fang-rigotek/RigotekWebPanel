@@ -3,7 +3,7 @@
 
 import { render } from 'preact';
 import LoadingLoop from './components/icons/LoadingLoop';
-import { ensureStylesheet } from './utils/resource-loader';
+import { setPageStylesheet } from './utils/resource-loader';
 import { DEFAULT_LANG, isSupportedLang, matchLangPrefix, type Lang } from './i18n';
 import { BOOT_PREFS_KEY, type BootPrefs, isSupportedTheme, type Theme } from './prefs';
 
@@ -144,7 +144,7 @@ async function checkCompatibilityWithCache(): Promise<boolean> {
   applyHtmlLang(lang);
 
   try {
-    await ensureStylesheet('/styles/status-page.css');
+    await setPageStylesheet('/styles/status-page.css');
   } catch (err) {
     console.error('[bootstrap] failed to load status-page.css:', err);
   }
