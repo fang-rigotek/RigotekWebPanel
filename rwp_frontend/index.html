@@ -9,15 +9,20 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="color-scheme" content="light dark" />
-  <noscript>
-    <meta http-equiv="refresh" content="0; url=/errors/noscript.html" />
-  </noscript>
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   <link rel="stylesheet" href="/styles/base.css" data-type="global" />
+  <link rel="stylesheet" href="/styles/status-page.css" data-type="page">
   <title>Rigotek Web Panel</title>
 </head>
 
 <body>
+  <noscript>
+    <div class="status-page">
+      <div class="status-content">
+        <span>JavaScript is required to run this application.</span>
+      </div>
+    </div>
+  </noscript>
   <!-- 应用挂载点 -->
   <div id="root"></div>
   <!-- 入口脚本 -->
