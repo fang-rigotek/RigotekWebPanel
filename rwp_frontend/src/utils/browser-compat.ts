@@ -1,5 +1,6 @@
 // rwp_frontend/src/utils/browser-compat.ts
 // 检测浏览器是否兼容当前前端应用（先版本检查，再按需加载 wasm 做特征兜底）
+import { localStorageUsable, COMPAT_CACHE_KEY } from '../env';
 
 /**
  * 获取浏览器的类型和版本号（检测顺序：Chrome → Safari → Firefox）
@@ -57,8 +58,27 @@ async function wasmFallbackCheck(): Promise<boolean> {
 
 /**
  * 外部调用入口：检测浏览器是否兼容前端应用（先版本，失败再 wasm 兜底）
+ * 成功会负责把结果写入缓存（true），失败不写入。
  */
 export async function isBrowserCompatible(): Promise<boolean> {
-  if (isVersionSupported()) return true;
-  return await wasmFallbackCheck();
+  if (isVersionSupported()) {
+    if (localStorageUsable) {
+      try {
+        localStorage.setItem(COMPAT_CACHE_KEY, 'true');
+      } catch {
+        /* ignore */
+      }
+    }
+    return true;
+  }
+
+  const ok = await wasmFallbackCheck();
+  if (ok && localStorageUsable) {
+    try {
+      localStorage.setItem(COMPAT_CACHE_KEY, 'true');
+    } catch {
+      /* ignore */
+    }
+  }
+  return ok;
 }

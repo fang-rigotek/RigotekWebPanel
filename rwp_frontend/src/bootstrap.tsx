@@ -2,25 +2,12 @@
 // 应用引导入口
 
 import { render } from 'preact';
-import LoadingLoop from './components/icons/LoadingLoop';
-import { setPageStylesheet } from './utils/resource-loader';
+import { localStorageUsable, COMPAT_CACHE_KEY } from './env';
+import { BOOT_PREFS_KEY, type BootPrefs } from './prefs';
 import { DEFAULT_LANG, isSupportedLang, matchLangPrefix, type Lang } from './i18n';
-import { BOOT_PREFS_KEY, type BootPrefs, isSupportedTheme, type Theme } from './prefs';
-
-const COMPAT_CACHE_KEY = 'rwp_compat_ok';
-
-/** 检测 localStorage 是否可用（供后续复用） */
-function detectLocalStorageUsable(): boolean {
-  try {
-    const k = '__rwp_ls_test__';
-    localStorage.setItem(k, '1');
-    localStorage.removeItem(k);
-    return true;
-  } catch {
-    return false;
-  }
-}
-export const localStorageUsable = detectLocalStorageUsable();
+import { loadPageStylesheet } from './style/loader';
+import { isSupportedTheme } from './style/theme';
+import LoadingLoop from './components/icons/LoadingLoop';
 
 /** 从 localStorage 读取启动偏好（主题/语言） */
 function readBootPrefs(): BootPrefs {
@@ -113,8 +100,8 @@ async function renderAlertSplash(text: string): Promise<void> {
   render(<Splash />, document.getElementById('root')!);
 }
 
-/** 浏览器兼容检测：仅成功时写入缓存（true），失败不缓存 */
-async function checkCompatibilityWithCache(): Promise<boolean> {
+/** 浏览器兼容检测 */
+async function checkCompatibility(): Promise<boolean> {
   if (localStorageUsable) {
     try {
       const cached = localStorage.getItem(COMPAT_CACHE_KEY);
@@ -124,15 +111,7 @@ async function checkCompatibilityWithCache(): Promise<boolean> {
     }
   }
   const { isBrowserCompatible } = await import('./utils/browser-compat');
-  const ok = await isBrowserCompatible();
-  if (ok && localStorageUsable) {
-    try {
-      localStorage.setItem(COMPAT_CACHE_KEY, 'true');
-    } catch {
-      /* ignore */
-    }
-  }
-  return ok;
+  return await isBrowserCompatible();
 }
 
 // ===== 启动引导（Step 1~7）=====
@@ -144,7 +123,7 @@ async function checkCompatibilityWithCache(): Promise<boolean> {
   applyHtmlLang(lang);
 
   try {
-    await setPageStylesheet('/styles/status-page.css');
+    await loadPageStylesheet('/styles/status-page.css');
   } catch (err) {
     console.error('[bootstrap] failed to load status-page.css:', err);
   }
@@ -152,7 +131,7 @@ async function checkCompatibilityWithCache(): Promise<boolean> {
   const i18n = await loadI18nBootstrap(lang);
   renderLoadingSplash(i18n.loading);
 
-  const compatOk = await checkCompatibilityWithCache();
+  const compatOk = await checkCompatibility();
   if (!compatOk) {
     await renderAlertSplash(i18n.browserTooOld);
     return;
