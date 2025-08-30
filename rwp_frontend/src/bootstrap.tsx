@@ -4,7 +4,7 @@
 import { render } from 'preact';
 import LoadingLoop from './components/icons/LoadingLoop';
 import { ensureStylesheet } from './utils/resource-loader';
-import { DEFAULT_LANG, isSupportedLang, type Lang } from './i18n';
+import { DEFAULT_LANG, isSupportedLang, matchLangPrefix, type Lang } from './i18n';
 import { BOOT_PREFS_KEY, type BootPrefs, isSupportedTheme, type Theme } from './prefs';
 
 const COMPAT_CACHE_KEY = 'rwp_compat_ok';
@@ -33,30 +33,45 @@ function readBootPrefs(): BootPrefs {
   }
 }
 
-/** 应用主题：仅在缓存为受支持主题时强制覆盖，否则跟随系统偏好且不写入 data-theme */
-function applyTheme(prefs: BootPrefs): Theme {
+/** 应用主题：仅在缓存为受支持主题时强制覆盖 */
+function applyTheme(prefs: BootPrefs): void {
   if (prefs.theme && isSupportedTheme(prefs.theme)) {
-    const theme = prefs.theme;
-    document.body.setAttribute('data-theme', theme);
-    return theme;
+    document.body.setAttribute('data-theme', prefs.theme);
   }
-  const systemDark = matchMedia?.('(prefers-color-scheme: dark)').matches;
-  const theme: Theme = systemDark ? 'dark' : 'light';
-  // 不设置 data-theme，交给 @media (prefers-color-scheme) 生效
-  return theme;
 }
 
+/**
+ * 选择语言：缓存优先，其次浏览器语言（仅支持列表内/前缀可映射），最后默认
+ */
+export function selectLang(prefs: BootPrefs): Lang {
+  // 1) 缓存优先
+  if (prefs.lang && isSupportedLang(prefs.lang)) {
+    return prefs.lang;
+  }
 
-/** 选择语言：缓存优先，其次浏览器语言（仅支持列表内），最后默认 */
-function selectLang(prefs: BootPrefs): Lang {
-  // 1. 缓存优先
-  if (prefs.lang && isSupportedLang(prefs.lang)) return prefs.lang;
+  // 2) 浏览器语言次之（SSR 环境无 navigator 时跳过）
+  if (typeof navigator !== 'undefined') {
+    const langs = navigator.languages && navigator.languages.length > 0
+      ? navigator.languages
+      : [navigator.language || ''];
 
-  // 2. 浏览器语言次之
-  const nav = (navigator.language || navigator.languages?.[0] || '').toLowerCase();
-  if (nav.startsWith('zh') && isSupportedLang('zh-CN')) return 'zh-CN';
+    for (const raw of langs) {
+      if (!raw) continue;
 
-  // 3. 兜底默认
+      // 2.1 精确匹配（完整代码，如 "zh-CN" / "en-US"）
+      if (isSupportedLang(raw)) {
+        return raw as Lang;
+      }
+
+      // 2.2 前缀匹配映射（如 "zh-TW" → "zh-CN", "en-GB" → "en-US"）
+      const fallback = matchLangPrefix(raw);
+      if (fallback) {
+        return fallback;
+      }
+    }
+  }
+
+  // 3) 兜底默认
   return DEFAULT_LANG;
 }
 

@@ -13,3 +13,14 @@ export const DEFAULT_LANG: Lang = 'en-US';
 export function isSupportedLang(lang: string): lang is Lang {
   return (SUPPORTED_LANGS as readonly string[]).includes(lang);
 }
+
+/** 根据前缀匹配 */
+export function matchLangPrefix(lang: string): Lang | null {
+  const base = lang.toLowerCase().split('-')[0];
+  for (const supported of SUPPORTED_LANGS) {
+    if (supported.toLowerCase().startsWith(base)) {
+      return supported;
+    }
+  }
+  return null;
+}
