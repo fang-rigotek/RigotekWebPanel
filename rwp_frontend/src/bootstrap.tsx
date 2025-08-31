@@ -2,10 +2,11 @@
 // 应用引导入口
 
 import { render } from 'preact';
-import { localStorageUsable, COMPAT_CACHE_KEY } from './env';
+import { localStorageUsable, COMPAT_CACHE_KEY } from './runtime/env';
+import { loadWasm } from './runtime/wasm';
 import { readBootPrefs } from './prefs';
 import { initI18n, loadI18nPkg, commonI18n, i18nPkg } from './i18n';
-import { isSupportedTheme } from './style/theme';
+import { applyTheme } from './style/theme';
 import LoadingLoop from './components/icons/LoadingLoop';
 
 /** 渲染 Loading 状态页（同步，仅加载 Loading 图标） */
@@ -53,14 +54,13 @@ async function checkCompatibility(): Promise<boolean> {
 (async function bootstrap() {
   const prefs = readBootPrefs();
 
-  /** 应用主题：仅在缓存为受支持主题时覆盖 */
-  if (prefs.theme && isSupportedTheme(prefs.theme)) {
-    document.body.setAttribute('data-theme', prefs.theme);
-  }
+  const i18nPromise = initI18n(prefs.lang);
+  applyTheme(prefs.theme)
 
-  await initI18n(prefs.lang);
+  await i18nPromise;
   renderLoadingSplash(commonI18n.loading);
 
+  loadWasm('rwp_engine')
   const compatOk = await checkCompatibility();
   if (!compatOk) {
     await loadI18nPkg('notifications');

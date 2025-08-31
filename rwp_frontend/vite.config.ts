@@ -8,10 +8,8 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
-      '@wasm': fileURLToPath(new URL('./wasm', import.meta.url)), // ✅ 新增
+      '@wasm': fileURLToPath(new URL('./wasm', import.meta.url)), //
     },
-    // 如果你的 wasm 包是 workspace 的符号链接，偶尔需要这行：
-    // preserveSymlinks: true,
   },
   server: {
     host: '127.0.0.1',

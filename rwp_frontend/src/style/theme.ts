@@ -7,6 +7,12 @@ const SUPPORTED_THEMES = ['light', 'dark'] as const;
 export type Theme = typeof SUPPORTED_THEMES[number];
 
 /** 判断是否为支持的主题 */
-export function isSupportedTheme(theme: string): theme is Theme {
+function isSupportedTheme(theme: string): theme is Theme {
   return (SUPPORTED_THEMES as readonly string[]).includes(theme);
+}
+
+export function applyTheme(theme: Theme | undefined) {
+  if (theme && isSupportedTheme(theme)) {
+    document.body.setAttribute('data-theme', theme);
+  }
 }

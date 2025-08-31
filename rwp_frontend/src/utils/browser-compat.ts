@@ -1,6 +1,7 @@
 // rwp_frontend/src/utils/browser-compat.ts
 // 检测浏览器是否兼容当前前端应用（先版本检查，再按需加载 wasm 做特征兜底）
-import { localStorageUsable, COMPAT_CACHE_KEY } from '../env';
+import { localStorageUsable, COMPAT_CACHE_KEY } from '../runtime/env';
+import { getWasm } from '../runtime/wasm';
 
 /**
  * 获取浏览器的类型和版本号（检测顺序：Chrome → Safari → Firefox）
@@ -47,9 +48,8 @@ function isVersionSupported(): boolean {
  */
 async function wasmFallbackCheck(): Promise<boolean> {
   try {
-    const mod = await import("@wasm/wasm_feature_check/pkg");
-    await mod.default(); // init()
-    return mod.check_wasm_feature();
+    const engine = await getWasm("rwp_engine");
+    return engine.check_wasm_feature();
   } catch (e) {
     console.error("WASM feature check failed:", e);
     return false;

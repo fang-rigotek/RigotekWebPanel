@@ -1,6 +1,6 @@
 // src/prefs/index.ts
 
-import { localStorageUsable } from '../env';
+import { localStorageUsable } from '../runtime/env';
 import type { Lang } from '../i18n';
 import type { Theme } from '../style/theme';
 

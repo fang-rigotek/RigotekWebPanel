@@ -1,4 +1,4 @@
-// src/env/index.ts
+// src/runtime/env.ts
 
 /** 检测 localStorage 是否可用 */
 function detectLocalStorageUsable(): boolean {
