@@ -4,15 +4,9 @@
 import { render } from 'preact';
 import { localStorageUsable, COMPAT_CACHE_KEY } from './env';
 import { readBootPrefs } from './prefs';
-import { selectLang, type Lang } from './i18n';
+import { initI18n, loadI18nPkg, commonI18n, i18nPkg } from './i18n';
 import { isSupportedTheme } from './style/theme';
 import LoadingLoop from './components/icons/LoadingLoop';
-
-/** 按需加载本页 i18n 文案 */
-async function loadI18nBootstrap(lang: Lang): Promise<Record<string, string>> {
-  const mod = await import(`./i18n/${lang}/bootstrap.ts`);
-  return (mod.default as Record<string, string>) ?? {};
-}
 
 /** 渲染 Loading 状态页（同步，仅加载 Loading 图标） */
 function renderLoadingSplash(text: string): void {
@@ -64,19 +58,17 @@ async function checkCompatibility(): Promise<boolean> {
     document.body.setAttribute('data-theme', prefs.theme);
   }
 
-  const lang = selectLang(prefs.lang);
-  if (lang !== 'en-US') document.documentElement.lang = lang;
-
-  const i18n = await loadI18nBootstrap(lang);
-  renderLoadingSplash(i18n.loading);
+  await initI18n(prefs.lang);
+  renderLoadingSplash(commonI18n.loading);
 
   const compatOk = await checkCompatibility();
   if (!compatOk) {
-    await renderAlertSplash(i18n.browserTooOld);
+    await loadI18nPkg('notifications');
+    await renderAlertSplash(i18nPkg.notifications.browserTooOld);
     return;
   }
 
   // Step 8+：交棒至统一门禁（保持当前 Loading 直至新页面准备好）
   const { startAuthGate } = await import('./authGate');
-  startAuthGate(document.getElementById('root')!, lang);
+  startAuthGate(document.getElementById('root')!);
 })();
