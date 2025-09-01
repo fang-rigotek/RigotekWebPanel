@@ -1,5 +1,12 @@
-// src/components/icons/index.ts
-// 统一导出 icons 目录下的所有原子图标组件
+// rwp_frontend/src/components/icons/index.ts
+import type { FunctionComponent } from 'preact';
 
-export { default as LoadingLoop } from './LoadingLoop';
-export { default as AlertCircle } from './AlertCircle';
+export type Icon = FunctionComponent<{ className?: string; animated?: boolean }>;
+
+/**
+ * 动态加载图标组件
+ */
+export async function loadIcon(name: string): Promise<Icon> {
+  const mod = await import(`./${name}`);
+  return mod.default as Icon;
+}

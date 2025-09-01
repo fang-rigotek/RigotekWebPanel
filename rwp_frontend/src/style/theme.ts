@@ -11,7 +11,7 @@ function isSupportedTheme(theme: string): theme is Theme {
   return (SUPPORTED_THEMES as readonly string[]).includes(theme);
 }
 
-export function applyTheme(theme: Theme | undefined) {
+export async function applyTheme(theme: Theme | undefined) {
   if (theme && isSupportedTheme(theme)) {
     document.body.setAttribute('data-theme', theme);
   }

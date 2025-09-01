@@ -3,17 +3,14 @@
 // Icon from Material Line Icons by Vjacheslav Trushkin
 // https://github.com/cyberalien/line-md/blob/master/license.txt
 
-import { JSX } from 'preact';
 
 export interface AlertCircleProps {
   className?: string;
-//  style?: JSX.CSSProperties;
   animated?: boolean;
 }
 
 export default function AlertCircle({
   className,
-//  style,
   animated = true,
 }: AlertCircleProps) {
   return (

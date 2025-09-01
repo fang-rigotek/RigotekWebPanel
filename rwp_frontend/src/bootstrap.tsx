@@ -8,28 +8,15 @@ import { readBootPrefs } from './prefs';
 import { initI18n, loadI18nPkg, commonI18n, i18nPkg } from './i18n';
 import { applyTheme } from './style/theme';
 import LoadingLoop from './components/icons/LoadingLoop';
+import { loadIcon, type Icon } from './components/icons';
 
-/** 渲染 Loading 状态页（同步，仅加载 Loading 图标） */
-function renderLoadingSplash(text: string): void {
+/** 渲染状态页 */
+async function renderSplash(IconComponent: Icon, text: string): Promise<void> {
   const Splash = () => (
     <div class="status-page">
       <div class="status-content">
-        <LoadingLoop />
-        <span>{text}</span>
-      </div>
-    </div>
-  );
-  render(<Splash />, document.getElementById('root')!);
-}
-
-/** 渲染 Alert 状态页（按需动态加载 Alert 图标） */
-async function renderAlertSplash(text: string): Promise<void> {
-  const { default: AlertCircle } = await import('./components/icons/AlertCircle');
-  const Splash = () => (
-    <div class="status-page">
-      <div class="status-content">
-        <AlertCircle />
-        <span>{text}</span>
+          <IconComponent />
+        <span class="status-text">{text}</span>
       </div>
     </div>
   );
@@ -53,18 +40,24 @@ async function checkCompatibility(): Promise<boolean> {
 // ===== 启动引导（Step 1~7）=====
 (async function bootstrap() {
   const prefs = readBootPrefs();
-
   const i18nPromise = initI18n(prefs.lang);
-  applyTheme(prefs.theme)
+  const themePromise = applyTheme(prefs.theme);
+  const iconPromise = loadIcon('LoadingLoop');
 
-  await i18nPromise;
-  renderLoadingSplash(commonI18n.loading);
+  (async () => {
+    await i18nPromise;
+    await themePromise;
+    renderSplash(
+      await iconPromise,
+      commonI18n.loading
+    );
+  })();
 
   loadWasm('rwp_engine')
   const compatOk = await checkCompatibility();
   if (!compatOk) {
     await loadI18nPkg('notifications');
-    await renderAlertSplash(i18nPkg.notifications.browserTooOld);
+    renderSplash(await loadIcon('AlertCircle'), i18nPkg.notifications.browserTooOld);
     return;
   }
 

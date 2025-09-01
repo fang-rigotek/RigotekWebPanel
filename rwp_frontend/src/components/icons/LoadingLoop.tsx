@@ -3,17 +3,13 @@
 // Icon from Material Line Icons by Vjacheslav Trushkin
 // https://github.com/cyberalien/line-md/blob/master/license.txt
 
-import { JSX } from 'preact';
-
 export interface LoadingLoopProps {
   className?: string;
-//  style?: JSX.CSSProperties;
   animated?: boolean;
 }
 
 export default function LoadingLoop({
   className,
-//  style,
   animated = true,
 }: LoadingLoopProps) {
   return (

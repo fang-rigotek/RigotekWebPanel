@@ -16,4 +16,9 @@
   align-items: center;
   gap: 12px;
   font-size: 18px;
+  line-height: 24px;
+}
+
+.status-content > * {
+  transition: transform 0.5s ease;
 }
