@@ -10,11 +10,21 @@ const mods = new Map<string, any>();
  */
 export async function loadWasm(name: string) {
   if (!modPromises.has(name)) {
-    const mod = await import(`@wasm/${name}/pkg/${name}.js`);
-    const promise = mod.default();
+    const promise = (async () => {
+    try {
+      const mod = await import(`@wasm/${name}/pkg/${name}.js`);
+      await mod.default();
+      mods.set(name, mod);
+    } catch (err) {
+      // 失败时清理，避免下次永远拿到 rejected Promise
+      modPromises.delete(name);
+      throw err;
+    }
+    })();
+
+    // 关键：在 import() 之前就把 Promise 放进 Map，防止并发重复初始化
     modPromises.set(name, promise);
-    await promise
-    mods.set(name, mod);
+    await promise;
   }
   return;
 }

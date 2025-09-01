@@ -74,7 +74,7 @@ export async function initI18n(lang: Lang | undefined) {
     document.documentElement.lang = currentLang;
   }
 
-  const mod = await import(`./${currentLang}/common`);
+  const mod = await import(`./${currentLang}/common.ts`);
   commonI18n = mod.default;
 }
 
@@ -87,7 +87,7 @@ export async function loadI18nPkg(pkg: string): Promise<void> {
   if (i18nPkg[pkg]) {
     return;
   }
-  const mod = await import(`./${currentLang}/${pkg}`);
+  const mod = await import(`./${currentLang}/${pkg}.ts`);
   i18nPkg[pkg] = mod.default;
 }
 /**

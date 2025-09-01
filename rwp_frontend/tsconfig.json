@@ -38,11 +38,15 @@
     }
   },
   "include": [
-    "src"
+    "src",
+    "public",
+    "wasm/**/pkg",
+    "wasm/**/*.wasm"
   ],
   "exclude": [
     "node_modules",
     "dist",
-    "build"
+    "build",
+    "target"
   ]
 }

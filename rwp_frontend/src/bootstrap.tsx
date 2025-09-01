@@ -7,7 +7,7 @@ import { loadWasm } from './runtime/wasm';
 import { readBootPrefs } from './prefs';
 import { initI18n, loadI18nPkg, commonI18n, i18nPkg } from './i18n';
 import { applyTheme } from './style/theme';
-import { loadIcon, type Icon } from './components/icons';
+import { loadIcon, type Icon } from './components';
 
 /** 渲染状态页 */
 async function renderSplash(IconComponent: Icon, text: string): Promise<void> {
