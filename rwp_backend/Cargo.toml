@@ -2,3 +2,7 @@
 name = "rwp_backend"
 version = "0.0.0"
 edition = "2024"
+
+[dependencies]
+axum = { version = "0.8.4", default-features = false, features = ["http1", "json"] }
+tokio = { version = "1.47.1", default-features = false, features = ["rt-multi-thread", "net"] }

@@ -1,10 +1,7 @@
 // src/authGate.tsx
-// 登录门禁逻辑骨架（Step 8~10）
+// 登录门禁逻辑骨架
 
-import type { Lang } from './i18n';
-
-/** 启动门禁逻辑：后续负责自动登录/加载登录页/跳转 */
-export async function startAuthGate(root: HTMLElement ): Promise<void> {
-  // TODO: 实现 Step 8~10
-  console.log('[AuthGate] start', { root});
+export function authGate() {
+  const root = document.getElementById('root')!;
+  // ... 这里做鉴权入口逻辑
 }
