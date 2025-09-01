@@ -53,13 +53,14 @@ async function checkCompatibility(): Promise<boolean> {
     );
   })();
 
-  loadWasm('rwp_engine')
   const compatOk = await checkCompatibility();
   if (!compatOk) {
     await loadI18nPkg('notifications');
-    renderSplash(await loadIcon('AlertCircle'), i18nPkg.notifications.browserTooOld);
+    await renderSplash(await loadIcon('AlertCircle'), i18nPkg.notifications.browserTooOld);
     return;
   }
+
+  loadWasm('rwp_engine')
 
   // Step 8+：交棒至统一门禁（保持当前 Loading 直至新页面准备好）
   const { startAuthGate } = await import('./authGate');
