@@ -16,7 +16,7 @@ async function renderSplash(IconComponent: Icon, text: string): Promise<void> {
     <div class="status-page">
       <div class="status-content">
           <IconComponent />
-        <span class="status-text">{text}</span>
+        <span>{text}</span>
       </div>
     </div>
   );
