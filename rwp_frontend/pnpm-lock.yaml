@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      idb:
+        specifier: ^8.0.3
+        version: 8.0.3
       preact:
         specifier: 10.27.1
         version: 10.27.1
@@ -520,6 +523,9 @@ packages:
   he@1.2.0:
     resolution: {integrity: sha512-F/1DnUGPopORZi0ni+CvrCgHQ5FyEAHRLSApuYWMmrbSwoN2Mn/7k+Gl38gJnR7yyDZk6WLXwiGod1JOWNDKGw==}
     hasBin: true
+
+  idb@8.0.3:
+    resolution: {integrity: sha512-LtwtVyVYO5BqRvcsKuB2iUMnHwPVByPCXFXOpuU96IZPPoPN6xjOGxZQ74pgSVVLQWtUOYgyeL4GE98BY5D3wg==}
 
   js-tokens@4.0.0:
     resolution: {integrity: sha512-RdJUflcE3cUzKiMqQgsCu06FPu9UdIJO0beYbPhHN4k6apgJtifcoCtT9bcxOpYBtpD2kCM6Sbzg4CausW/PKQ==}
@@ -1101,6 +1107,8 @@ snapshots:
   gensync@1.0.0-beta.2: {}
 
   he@1.2.0: {}
+
+  idb@8.0.3: {}
 
   js-tokens@4.0.0: {}
 

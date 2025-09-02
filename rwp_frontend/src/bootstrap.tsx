@@ -2,12 +2,28 @@
 // 应用引导入口
 
 import { render } from 'preact';
-import { localStorageUsable, COMPAT_CACHE_KEY } from './runtime/env';
+import { initDB, db, STORE_PREFS, PREFS_THEME, PREFS_LANG, STORE_STATES, STATES_COMPAT } from './runtime/db';
 import { loadWasm } from './runtime/wasm';
-import { readBootPrefs } from './prefs';
-import { initI18n, loadI18nPkg, commonI18n, i18nPkg } from './i18n';
-import { applyTheme } from './style/theme';
+import { initI18n, loadI18nPkg, commonI18n, i18nPkg, type Lang } from './i18n';
+import { applyTheme, type Theme } from './style/theme';
 import { loadIcon, type Icon } from './components';
+
+type BootPrefs = {
+  theme?: Theme;
+  lang?: Lang;
+};
+
+// 读取用户偏好缓存
+export async function readBootPrefs(): Promise<BootPrefs> {
+  if (!db) return {};
+
+  const [theme, lang] = await Promise.all([
+    db.get(STORE_PREFS, PREFS_THEME),
+    db.get(STORE_PREFS, PREFS_LANG),
+  ]);
+
+  return { theme: theme as Theme | undefined, lang: lang as Lang | undefined };
+}
 
 /** 渲染状态页 */
 async function renderSplash(IconComponent: Icon, text: string): Promise<void> {
@@ -24,24 +40,28 @@ async function renderSplash(IconComponent: Icon, text: string): Promise<void> {
 
 /** 浏览器兼容检测 */
 async function checkCompatibility(): Promise<boolean> {
-  if (localStorageUsable) {
-    try {
-      const cached = localStorage.getItem(COMPAT_CACHE_KEY);
-      if (cached === 'true') return true;
-    } catch {
-      /* ignore */
-    }
+  const cached = db && await db.get(STORE_STATES, STATES_COMPAT);
+  if (cached === true) return true;
+
+  const { isBrowserCompatible } = await import("./utils/browser-compat");
+  const compat = await isBrowserCompatible();
+
+  if (compat && db) {
+    await db.put(STORE_STATES, true, STATES_COMPAT);
   }
-  const { isBrowserCompatible } = await import('./utils/browser-compat');
-  return await isBrowserCompatible();
+  return compat;
 }
+
 
 // ===== 启动引导函数 =====
 export async function bootstrap(): Promise<boolean> {
-  const prefs = readBootPrefs();
+  const dbPromise = initDB();
+  const iconPromise = loadIcon('LoadingLoop');
+
+  await dbPromise;
+  const prefs = await readBootPrefs();
   const i18nPromise = initI18n(prefs.lang);
   const themePromise = applyTheme(prefs.theme);
-  const iconPromise = loadIcon('LoadingLoop');
 
   const loadingPromise = (async () => {
     await i18nPromise;

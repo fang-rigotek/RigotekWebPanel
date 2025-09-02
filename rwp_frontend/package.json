@@ -10,6 +10,7 @@
     "lint": "tsc --noEmit"
   },
   "dependencies": {
+    "idb": "^8.0.3",
     "preact": "10.27.1"
   },
   "devDependencies": {
