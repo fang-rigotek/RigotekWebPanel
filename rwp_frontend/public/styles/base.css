@@ -57,3 +57,19 @@ svg,
   color: var(--icon-color);
   flex: none;
 }
+
+.status-page {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  text-align: center;
+}
+
+.status-content {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 18px;
+  line-height: 24px;
+}
