@@ -1,6 +1,6 @@
 /* 
   rwp_frontend/public/styles/base.css
-  全局基础样式：字体、排版、主题兜底
+  全局基础样式+常用页面样式
 */
 
 :root,
@@ -36,11 +36,21 @@ body {
   padding: 0;
   font-family: sans-serif;
   line-height: 1.4;
-  overflow-x: auto;
   overflow-wrap: anywhere;
 
   background-color: var(--bg);
   color: var(--fg);
+
+  /* 隐藏竖向滚动条，不预留宽度 */
+  scrollbar-width: none;
+}
+
+/* < 320px 时固定显示横向滚动条 */
+@media (max-width: 319px) {
+  html,
+  body {
+    overflow-x: scroll;
+  }
 }
 
 *,
