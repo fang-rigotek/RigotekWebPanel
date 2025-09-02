@@ -2,8 +2,8 @@
 // 应用引导入口
 
 import { render } from 'preact';
-import { initDB, db, STORE_PREFS, PREFS_THEME, PREFS_LANG, STORE_STATES, STATES_COMPAT } from './runtime/db';
-import { loadWasm } from './runtime/wasm';
+import { initDB, db, STORE_PREFS, PREFS_THEME, PREFS_LANG, STORE_STATES, STATES_COMPAT } from './core/db';
+import { loadWasm } from './core/wasm';
 import { initI18n, loadI18nPkg, commonI18n, i18nPkg, type Lang } from './i18n';
 import { applyTheme, type Theme } from './style/theme';
 import { loadIcon, type Icon } from './components';

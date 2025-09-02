@@ -1,6 +1,6 @@
 // rwp_frontend/src/utils/browser-compat.ts
 // 检测浏览器是否兼容当前前端应用（先版本检查，再按需加载 wasm 做特征兜底）
-import { loadWasm, getWasm } from '../runtime/wasm';
+import { loadWasm, getWasm } from '../core/wasm';
 
 /**
  * 获取浏览器的类型和版本号（检测顺序：Chrome → Safari → Firefox）
