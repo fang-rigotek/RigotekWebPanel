@@ -30,23 +30,22 @@
 
 html,
 body {
-  min-width: 320px;
-  min-height: 100dvh;
+  scrollbar-width: none;
+
   margin: 0;
   padding: 0;
-  font-family: sans-serif;
-  line-height: 1.4;
-  overflow-wrap: anywhere;
 
   background-color: var(--bg);
   color: var(--fg);
 
-  /* 隐藏竖向滚动条，不预留宽度 */
-  scrollbar-width: none;
+  font-family: sans-serif;
+  line-height: 1.33;
+  overflow-wrap: anywhere;
 }
 
 /* < 320px 时固定显示横向滚动条 */
 @media (max-width: 319px) {
+
   html,
   body {
     overflow-x: scroll;
@@ -58,6 +57,10 @@ body {
 *::after {
   box-sizing: border-box;
   transition: all 0.5s ease;
+}
+ 
+.root {
+  min-width: 320px;
 }
 
 svg,

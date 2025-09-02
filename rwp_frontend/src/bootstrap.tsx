@@ -17,12 +17,20 @@ type BootPrefs = {
 export async function readBootPrefs(): Promise<BootPrefs> {
   if (!db) return {};
 
+  const tx = db.transaction(STORE_PREFS, "readonly");
+  const store = tx.objectStore(STORE_PREFS);
+
   const [theme, lang] = await Promise.all([
-    db.get(STORE_PREFS, PREFS_THEME),
-    db.get(STORE_PREFS, PREFS_LANG),
+    store.get(PREFS_THEME),
+    store.get(PREFS_LANG),
   ]);
 
-  return { theme: theme as Theme | undefined, lang: lang as Lang | undefined };
+  await tx.done;
+
+  return {
+    theme: theme as Theme | undefined,
+    lang: lang as Lang | undefined,
+  }
 }
 
 /** 渲染状态页 */
