@@ -5,7 +5,7 @@
 
 :root,
 [data-theme="light"] {
-  --bg: #fff;
+  --bg: #f5f5f7;
   --fg: #000;
   --icon-color: #000;
 }
