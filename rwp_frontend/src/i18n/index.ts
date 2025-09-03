@@ -69,10 +69,7 @@ function selectLang(lang: Lang | undefined): void {
  */
 export async function initI18n(lang: Lang | undefined) {
   selectLang(lang);
-
-  if (currentLang !== DEFAULT_LANG) {
-    document.documentElement.lang = currentLang;
-  }
+  document.documentElement.lang = currentLang;
 
   const mod = await import(`./${currentLang}/common.ts`);
   commonI18n = mod.default;

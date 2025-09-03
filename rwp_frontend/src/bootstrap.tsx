@@ -2,7 +2,7 @@
 // 应用引导入口
 
 import { render } from 'preact';
-import { initDB, db, STORE_PREFS, PREFS_THEME, PREFS_LANG, STORE_STATES, STATES_COMPAT } from './core/db';
+import { initDB, db, userStorageKey, STORE_PREFS, PREFS_KEY, STORE_STATES, STATES_KEY } from './core/db';
 import { loadWasm } from './core/wasm';
 import { initI18n, loadI18nPkg, commonI18n, i18nPkg, type Lang } from './i18n';
 import { applyTheme, type Theme } from './style/theme';
@@ -14,23 +14,31 @@ type BootPrefs = {
 };
 
 // 读取用户偏好缓存
-export async function readBootPrefs(): Promise<BootPrefs> {
+async function readBootPrefs(): Promise<BootPrefs> {
   if (!db) return {};
 
-  const tx = db.transaction(STORE_PREFS, "readonly");
-  const store = tx.objectStore(STORE_PREFS);
+  const tx = db.transaction([STORE_STATES, STORE_PREFS], "readonly");
+  const statesStore = tx.objectStore(STORE_STATES);
+  const prefsStore = tx.objectStore(STORE_PREFS);
 
+  // 1) 必须有最后登录用户 id
+  const uid = (await statesStore.get(STATES_KEY.LAST_LOGIN_UID)) as string | undefined;
+  if (!uid) {
+    await tx.done;
+    return {};
+  }
+
+  // 2) 用组合 key 查 prefs
   const [theme, lang] = await Promise.all([
-    store.get(PREFS_THEME),
-    store.get(PREFS_LANG),
+    prefsStore.get(userStorageKey(uid, PREFS_KEY.THEME)),
+    prefsStore.get(userStorageKey(uid, PREFS_KEY.LANG)),
   ]);
 
   await tx.done;
-
   return {
     theme: theme as Theme | undefined,
     lang: lang as Lang | undefined,
-  }
+  };
 }
 
 /** 渲染状态页 */
@@ -48,14 +56,14 @@ async function renderSplash(IconComponent: Icon, text: string): Promise<void> {
 
 /** 浏览器兼容检测 */
 async function checkCompatibility(): Promise<boolean> {
-  const cached = db && await db.get(STORE_STATES, STATES_COMPAT);
+  const cached = db && await db.get(STORE_STATES, STATES_KEY.COMPAT);
   if (cached === true) return true;
 
   const { isBrowserCompatible } = await import("./utils/browser-compat");
   const compat = await isBrowserCompatible();
 
   if (compat && db) {
-    await db.put(STORE_STATES, true, STATES_COMPAT);
+    await db.put(STORE_STATES, true, STATES_KEY.COMPAT);
   }
   return compat;
 }

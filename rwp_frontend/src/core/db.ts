@@ -9,13 +9,23 @@ interface RwpDB {
 // prefs 表
 export const STORE_PREFS = "prefs";
 // prefs 表键
-export const PREFS_THEME = "theme";
-export const PREFS_LANG = "lang";
+export const PREFS_KEY = {
+  THEME: "theme",
+  LANG: "lang",
+};
 
 // states 表
 export const STORE_STATES = "states";
 // states 表键
-export const STATES_COMPAT = "compat";
+export const STATES_KEY = {
+  COMPAT: "compat",
+  LAST_LOGIN_UID: "last_login_uid",
+};
+
+// 用户键
+export function userStorageKey(userId: string, baseKey: string) {
+  return `${userId}:${baseKey}`;
+}
 
 export let db: IDBPDatabase<RwpDB> | null = null;
 
