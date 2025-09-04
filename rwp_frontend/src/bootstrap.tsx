@@ -3,7 +3,7 @@
 
 import { render } from 'preact';
 import { initDB, db, userStorageKey, STORE_PREFS, PREFS_KEY, STORE_STATES, STATES_KEY } from './core/db';
-import { loadWasm } from './core/wasm';
+import { loadWasm, getWasm } from './core/wasm';
 import { initI18n, loadI18nPkg, commonI18n, i18nPkg, type Lang } from './i18n';
 import { applyTheme, type Theme } from './style/theme';
 import { loadIcon, type Icon } from './components';
@@ -57,18 +57,29 @@ async function renderSplash(IconComponent: Icon, text: string): Promise<void> {
   render(<Splash />, document.getElementById('root')!);
 }
 
-/** 浏览器兼容检测 */
-async function checkCompatibility(): Promise<boolean> {
+/** wasm模块兼容检测 */
+async function isBrowserCompatible(): Promise<boolean> {
   const cached = db && await db.get(STORE_STATES, STATES_KEY.COMPAT);
   if (cached === true) return true;
 
-  const { isBrowserCompatible } = await import("./utils/browser-compat");
-  const compat = await isBrowserCompatible();
+  try {
+    loadWasm("rwp_engine")
+    const engine = await getWasm("rwp_engine");
+    const result = engine.check_wasm_feature();
 
-  if (compat && db) {
-    await db.put(STORE_STATES, true, STATES_KEY.COMPAT);
+    if (db) {
+      try {
+        await db.put(STORE_STATES, result, STATES_KEY.COMPAT);
+      } catch (err) {
+        console.warn("Failed to persist compat check:", err);
+      }
+    }
+
+    return result;
+  } catch (e) {
+    console.error("WASM feature check failed:", e);
+    return false;
   }
-  return compat;
 }
 
 
@@ -91,7 +102,7 @@ export async function bootstrap(): Promise<boolean> {
     );
   })();
 
-  const compatOk = await checkCompatibility();
+  const compatOk = await isBrowserCompatible();
   if (!compatOk) {
     await loadI18nPkg('notifications');
     await renderSplash(await loadIcon('AlertCircle'), i18nPkg.notifications.browserTooOld);
