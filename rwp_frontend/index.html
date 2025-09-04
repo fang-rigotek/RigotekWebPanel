@@ -23,26 +23,29 @@
 
   <div id="root"></div>
 
+  <!-- 仅开发时保留，以方便编译识别 -->
+  <script type="module" src="./src/main.tsx"></script>
+
+  <div id="root"></div>
   <script>
     (function () {
       var supportsES2022 = true;
-      try {
-        new Function("class A { static { } x = 1; }");
-      } catch (e) {
-        supportsES2022 = false;
-      }
+      var supportsES2022 = true;
+      try { new Function("class A { static { } x = 1; }"); }
+      catch (e) { supportsES2022 = false; }
 
       if (supportsES2022) {
-        var rwpScript = document.createElement("script");
-        rwpScript.type = "module";
-        rwpScript.src = "./src/main.tsx";
-        document.body.appendChild(rwpScript);
+        var s = document.createElement("script");
+        s.type = "module";
+        s.src = "./src/main.tsx"; // 编译后替换为入口js路径
+        document.body.appendChild(s);
       } else {
         document.getElementById("root").innerHTML =
-          '<div class="status-page"><div class="status-content"><span>Your browser version is too old.</span></div></div>';
+          '<div class="status-page"><div class="status-content"><span>Your browser version is too old</span></div></div>';
       }
     })();
   </script>
+
 </body>
 
 </html>
