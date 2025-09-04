@@ -17,28 +17,31 @@ type BootPrefs = {
 async function readBootPrefs(): Promise<BootPrefs> {
   if (!db) return {};
 
-  const tx = db.transaction([STORE_STATES, STORE_PREFS], "readonly");
-  const statesStore = tx.objectStore(STORE_STATES);
-  const prefsStore = tx.objectStore(STORE_PREFS);
+  try {
+    const tx = db.transaction([STORE_STATES, STORE_PREFS], "readonly");
+    const statesStore = tx.objectStore(STORE_STATES);
+    const prefsStore = tx.objectStore(STORE_PREFS);
 
-  // 1) 必须有最后登录用户 id
-  const uid = (await statesStore.get(STATES_KEY.LAST_LOGIN_UID)) as string | undefined;
-  if (!uid) {
+    const uid = (await statesStore.get(STATES_KEY.LAST_LOGIN_UID)) as string | undefined;
+    if (!uid) {
+      await tx.done;
+      return {};
+    }
+
+    const [theme, lang] = await Promise.all([
+      prefsStore.get(userStorageKey(uid, PREFS_KEY.THEME)),
+      prefsStore.get(userStorageKey(uid, PREFS_KEY.LANG)),
+    ]);
+
     await tx.done;
+    return {
+      theme: theme as Theme | undefined,
+      lang: lang as Lang | undefined,
+    };
+  } catch (err) {
+    console.error("Failed to read boot prefs:", err);
     return {};
   }
-
-  // 2) 用组合 key 查 prefs
-  const [theme, lang] = await Promise.all([
-    prefsStore.get(userStorageKey(uid, PREFS_KEY.THEME)),
-    prefsStore.get(userStorageKey(uid, PREFS_KEY.LANG)),
-  ]);
-
-  await tx.done;
-  return {
-    theme: theme as Theme | undefined,
-    lang: lang as Lang | undefined,
-  };
 }
 
 /** 渲染状态页 */

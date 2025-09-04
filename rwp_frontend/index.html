@@ -15,7 +15,7 @@
     <div id="root">
       <div class="status-page">
         <div class="status-content">
-          <span>JavaScript is required to run this application.</span>
+          <span>JavaScript is required to run this application</span>
         </div>
       </div>
     </div>
@@ -24,6 +24,36 @@
   <div id="root"></div>
 
   <script type="module" src="./src/main.tsx"></script>
+  <script>
+    (function () {
+      // 检测 ES2022：class 静态初始化块（ES2022 语法）
+      var isES2022 = true;
+      try {
+        new Function("class A { static { } x = 1; }"); // 含：静态块 + 公有类字段
+      } catch (e) {
+        isES2022 = false;
+      }
+
+      if (!isES2022) {
+        var root = document.getElementById("root");
+        if (!root) {
+          // 兜底：若没有 #root，则创建一个
+          root = document.createElement("div");
+          root.id = "root";
+          if (document.body) document.body.appendChild(root);
+        }
+
+        if (root) {
+          root.innerHTML =
+            '<div class="status-page">' +
+            '<div class="status-content">' +
+            '<span>Your browser version is too old</span>' +
+            '</div>' +
+            '</div>';
+        }
+      }
+    })();
+  </script>
 </body>
 
 </html>
