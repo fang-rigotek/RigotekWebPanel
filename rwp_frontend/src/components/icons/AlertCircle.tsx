@@ -20,7 +20,7 @@ export default function AlertCircle({
       role="img"
       data-animated={animated ? 'true' : 'false'}
       class={`icon${className ? ` ${className}` : ''}`}
-//      style={style}
+    //      style={style}
     >
       <title>Alert Circle Icon</title>
       <g
@@ -40,30 +40,36 @@ export default function AlertCircle({
 
       <style>
         {`
-          .a-circle { stroke-dasharray: 64; stroke-dashoffset: 0; }
-          .a-line   { stroke-dasharray: 8;  stroke-dashoffset: 0; }
-          .a-dot    { stroke-dasharray: 2;  stroke-dashoffset: 0; }
+    .a-circle { stroke-dasharray: 64; stroke-dashoffset: 0; }
+    .a-line   { stroke-dasharray: 8;  stroke-dashoffset: 0; }
+    .a-dot    { stroke-dasharray: 2;  stroke-dashoffset: 0; }
 
-          [data-animated="true"] .a-circle {
-            stroke-dashoffset: 64;
-            animation: a-circle-draw 0.6s forwards;
-          }
-          @keyframes a-circle-draw { to { stroke-dashoffset: 0; } }
+    [data-animated="true"] .a-circle {
+      stroke-dashoffset: 64;
+      animation: a-circle-draw 0.6s forwards;
+    }
+    @keyframes a-circle-draw { to { stroke-dashoffset: 0; } }
 
-          [data-animated="true"] .a-line {
-            stroke-dashoffset: 8;
-            animation: a-line-draw 0.2s forwards;
-            animation-delay: 0.6s;
-          }
-          @keyframes a-line-draw { to { stroke-dashoffset: 0; } }
+    [data-animated="true"] .a-line {
+      stroke-dashoffset: 8;
+      stroke-opacity: 0;
+      animation:
+        a-line-draw 0.2s forwards 0.6s,
+        a-stroke-in 0s   forwards 0.6s;
+    }
+    @keyframes a-line-draw { to { stroke-dashoffset: 0; } }
 
-          [data-animated="true"] .a-dot {
-            stroke-dashoffset: 2;
-            animation: a-dot-draw 0.2s forwards;
-            animation-delay: 0.8s;
-          }
-          @keyframes a-dot-draw { to { stroke-dashoffset: 0; } }
-        `}
+    [data-animated="true"] .a-dot {
+      stroke-dashoffset: 2;
+      stroke-opacity: 0;
+      animation:
+        a-dot-draw 0.2s forwards 0.8s,
+        a-stroke-in 0s   forwards 0.8s;
+    }
+    @keyframes a-dot-draw { to { stroke-dashoffset: 0; } }
+
+    @keyframes a-stroke-in { to { stroke-opacity: 1; } }
+  `}
       </style>
     </svg>
   );

@@ -1,48 +1,56 @@
-// src/runtime/db.ts
-import { openDB, IDBPDatabase } from "idb";
+// src/core/db.ts
+import { openDB, IDBPDatabase, DBSchema } from "idb";
 
 interface RwpDB {
-  prefs: { key: string; value: unknown };
-  states: { key: string; value: unknown };
+  prefs:  { key: string; value: unknown };
+  context: { key: string; value: unknown };
+  user:  { key: string; value: unknown };
 }
 
-// prefs 表
-export const STORE_PREFS = "prefs";
-// prefs 表键
-export const PREFS_KEY = {
-  THEME: "theme",
-  LANG: "lang",
-};
+export const CONTEXT_STORE = {
+  NAME: "context",
+  KEY: {
+    COMPAT: "compat",
+    DEVICE_ID: "device_id",
+    DEVICE_TOKEN: "device_token",
+    LAST_LOGIN_UID: "last_login_uid",
+  },
+} as const;
 
-// states 表
-export const STORE_STATES = "states";
-// states 表键
-export const STATES_KEY = {
-  COMPAT: "compat",
-  LAST_LOGIN_UID: "last_login_uid",
-};
+export const PREFS_STORE = {
+  NAME: "prefs",
+  KEY: {
+    THEME: "theme",
+    LANG: "lang",
+  },
+} as const;
 
-// 用户键
-export function userStorageKey(userId: string, baseKey: string) {
-  return `${userId}:${baseKey}`;
+export const USER_STORE = {
+  NAME: "user",
+  KEY: {
+    USERNAME: "username",
+    USER_TOKEN: "token",
+  },
+} as const;
+
+
+export function genUserKey(uid: string, key: string) {
+  return `${uid}:${key}`;
 }
 
 export let db: IDBPDatabase<RwpDB> | null = null;
 
 export async function initDB() {
   try {
-    db = await openDB<RwpDB>("rwp-db", 3, { 
-      upgrade(db) {
-        if (!db.objectStoreNames.contains(STORE_PREFS)) {
-          db.createObjectStore(STORE_PREFS);
-        }
-        if (!db.objectStoreNames.contains(STORE_STATES)) {
-          db.createObjectStore(STORE_STATES);
-        }
+    db = await openDB<RwpDB>("rwp-db", 1, {
+      upgrade(u) {
+        if (!u.objectStoreNames.contains(PREFS_STORE.NAME))  u.createObjectStore(PREFS_STORE.NAME);
+        if (!u.objectStoreNames.contains(CONTEXT_STORE.NAME)) u.createObjectStore(CONTEXT_STORE.NAME);
+        if (!u.objectStoreNames.contains(USER_STORE.NAME))  u.createObjectStore(USER_STORE.NAME);
       },
     });
   } catch (err) {
-    console.warn("IndexedDB not available:", err);
+    console.error("IndexedDB init failed:", err);
     db = null;
   }
 }

@@ -5,9 +5,10 @@
 
 :root,
 [data-theme="light"] {
-  --bg: #f5f5f7;
-  --fg: #000;
-  --icon-color: #000;
+  --color-bg-page: #f5f5f7;
+  --color-fg: #000;
+  --color-icon: #000;
+  --color-fg-paragraph: rgba(0, 0, 0, 0.56);
 }
 
 :root {
@@ -16,16 +17,18 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #000;
-    --fg: #fff;
-    --icon-color: #fff;
+    --color-bg-page: #000;
+    --color-fg: #fff;
+    --color-icon: #fff;
+    --color-fg-paragraph: hsla(0, 0%, 100%, 0.66);
   }
 }
 
 [data-theme="dark"] {
-  --bg: #000;
-  --fg: #fff;
-  --icon-color: #fff;
+  --color-bg-page: #000;
+  --color-fg: #fff;
+  --color-icon: #fff;
+  --color-fg-paragraph: hsla(0, 0%, 100%, 0.66);
 }
 
 html,
@@ -35,17 +38,14 @@ body {
   margin: 0;
   padding: 0;
 
-  background-color: var(--bg);
-  color: var(--fg);
+  background-color: var(--color-bg-page);
+  color: var(--color-fg);
 
   font-family: sans-serif;
-  line-height: 1.33;
   overflow-wrap: anywhere;
 }
 
-/* < 320px 时固定显示横向滚动条 */
 @media (max-width: 319px) {
-
   html,
   body {
     overflow-x: scroll;
@@ -63,35 +63,75 @@ body {
   min-width: 320px;
 }
 
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-weight: bold;
+  margin: 0;
+}
+
+h5 {
+  font-size: 18px;
+  line-height: 24px;
+}
+
+p {
+  font-size: 12px;
+  line-height: 18px;
+  margin: 0;
+  color: var(--color-fg-paragraph);
+}
+
 svg,
 .icon {
   width: var(--icon-size);
   height: var(--icon-size);
-  fill: var(--icon-color);
-  color: var(--icon-color);
-  flex: none;
+  fill: var(--color-icon);
+  color: var(--color-icon);
+  
+  display: block;
+  flex-shrink: 0;
 }
 
 .status-page {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
   /* 兜底 */
   min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
   /* 优先 */
   min-height: 100dvh;
-  display: grid;
-  place-items: center;
 
+  max-width: 1024px;
   padding: 24px;
-  text-align: center;
+  margin: auto;
 }
 
 .status-content {
-  display: inline-flex;
+  text-align: center;
+}
+
+.status-header {
+  display: flex;
+  align-items: center;   /* 图标和标题垂直居中 */
+  justify-content: center;
+  gap: 12px;             /* 图标与标题之间的间隔 */
+}
+
+.status-icon {
+  display: flex;
   align-items: center;
-  gap: 12px;
-  font-size: 18px;
-  line-height: 24px;
+  justify-content: center;
+}
+
+.status-header + .status-paragraph {
+  margin-top: 6px;
+}
+
+.status-title h5 {
+  font-weight: normal;
 }

@@ -1,12 +1,13 @@
 // rwp_frontend/src/bootstrap.tsx
 // 应用引导入口
-
 import { render } from 'preact';
-import { initDB, db, userStorageKey, STORE_PREFS, PREFS_KEY, STORE_STATES, STATES_KEY } from './core/db';
+import { initDB, db, genUserKey, PREFS_STORE, CONTEXT_STORE } from './core/db';
+import { context } from './context';
 import { loadWasm, getWasm } from './core/wasm';
 import { initI18n, loadI18nPkg, commonI18n, i18nPkg, type Lang } from './i18n';
 import { applyTheme, type Theme } from './style/theme';
 import { loadIcon, type Icon } from './components';
+
 
 type BootPrefs = {
   theme?: Theme;
@@ -16,21 +17,21 @@ type BootPrefs = {
 // 读取用户偏好缓存
 async function readBootPrefs(): Promise<BootPrefs> {
   if (!db) return {};
-
   try {
-    const tx = db.transaction([STORE_STATES, STORE_PREFS], "readonly");
-    const statesStore = tx.objectStore(STORE_STATES);
-    const prefsStore = tx.objectStore(STORE_PREFS);
+    const tx = db.transaction([CONTEXT_STORE.NAME, PREFS_STORE.NAME], "readonly");
+    const contextStore = tx.objectStore(CONTEXT_STORE.NAME);
 
-    const uid = (await statesStore.get(STATES_KEY.LAST_LOGIN_UID)) as string | undefined;
+    const uid = (await contextStore.get(CONTEXT_STORE.KEY.LAST_LOGIN_UID)) as string | undefined;
     if (!uid) {
       await tx.done;
       return {};
     }
+    context.setLastLogin(uid);
 
+    const prefsStore = tx.objectStore(PREFS_STORE.NAME);
     const [theme, lang] = await Promise.all([
-      prefsStore.get(userStorageKey(uid, PREFS_KEY.THEME)),
-      prefsStore.get(userStorageKey(uid, PREFS_KEY.LANG)),
+      prefsStore.get(genUserKey(uid, PREFS_STORE.KEY.THEME)),
+      prefsStore.get(genUserKey(uid, PREFS_STORE.KEY.LANG)),
     ]);
 
     await tx.done;
@@ -45,21 +46,40 @@ async function readBootPrefs(): Promise<BootPrefs> {
 }
 
 /** 渲染状态页 */
-async function renderSplash(IconComponent: Icon, text: string): Promise<void> {
+async function renderSplash(
+  text: string,
+  IconComponent?: Icon,
+  paragraph?: string,
+): Promise<void> {
   const Splash = () => (
-    <div class="status-page">
-      <div class="status-content">
-        <IconComponent />
-        <span>{text}</span>
+    <div className="status-page">
+      <div className="status-content">
+        <div className="status-header">
+          {IconComponent && (
+            <div className="status-icon">
+              <IconComponent className="icon" />
+            </div>
+          )}
+          <div className="status-title">
+            <h5>{text}</h5>
+          </div>
+        </div>
+        {paragraph && (
+          <div className="status-paragraph">
+            <p>{paragraph}</p>
+          </div>
+        )}
       </div>
     </div>
   );
-  render(<Splash />, document.getElementById('root')!);
+  render(<Splash />, document.getElementById("root")!);
+  const delay = new Promise(r => setTimeout(r, 500));
+  await delay;
 }
 
 /** wasm模块兼容检测 */
 async function isBrowserCompatible(): Promise<boolean> {
-  const cached = db && await db.get(STORE_STATES, STATES_KEY.COMPAT);
+  const cached = db && await db.get(CONTEXT_STORE.NAME, CONTEXT_STORE.KEY.COMPAT);
   if (cached === true) return true;
 
   try {
@@ -69,7 +89,7 @@ async function isBrowserCompatible(): Promise<boolean> {
 
     if (db) {
       try {
-        await db.put(STORE_STATES, result, STATES_KEY.COMPAT);
+        await db.put(CONTEXT_STORE.NAME, result, CONTEXT_STORE.KEY.COMPAT);
       } catch (err) {
         console.warn("Failed to persist compat check:", err);
       }
@@ -97,18 +117,18 @@ export async function bootstrap(): Promise<boolean> {
     await i18nPromise;
     await themePromise;
     await renderSplash(
+      commonI18n.loading,
       await iconPromise,
-      commonI18n.loading
     );
   })();
 
   const compatOk = await isBrowserCompatible();
   if (!compatOk) {
     await loadI18nPkg('notifications');
-    await renderSplash(await loadIcon('AlertCircle'), i18nPkg.notifications.browserTooOld);
+    await loadingPromise;
+    await renderSplash(i18nPkg.notifications.browserOutdated, await loadIcon('AlertCircle'), i18nPkg.notifications.wasm2Req);
     return false;
   }
-
   loadWasm('rwp_engine')
   await loadingPromise;
   return true;
