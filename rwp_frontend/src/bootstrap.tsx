@@ -1,12 +1,12 @@
 // rwp_frontend/src/bootstrap.tsx
 // 应用引导入口
 import { render } from 'preact';
-import { initDB, db, genUserKey, PREFS_STORE, CONTEXT_STORE } from './core/db';
 import { context } from './context';
-import { loadWasm, getWasm } from './core/wasm';
+import { initDB, db, genUserKey, PREFS_STORE, CONTEXT_STORE } from './core/db';
 import { initI18n, loadI18nPkg, commonI18n, i18nPkg, type Lang } from './i18n';
 import { applyTheme, type Theme } from './style/theme';
 import { loadIcon, type Icon } from './components';
+import { loadWasm, getWasm } from './core/wasm';
 
 
 type BootPrefs = {
@@ -21,7 +21,7 @@ async function readBootPrefs(): Promise<BootPrefs> {
     const tx = db.transaction([CONTEXT_STORE.NAME, PREFS_STORE.NAME], "readonly");
     const contextStore = tx.objectStore(CONTEXT_STORE.NAME);
 
-    const uid = (await contextStore.get(CONTEXT_STORE.KEY.LAST_LOGIN_UID)) as string | undefined;
+    const uid = (await contextStore.get(CONTEXT_STORE.KEY.LAST_LOGIN_UID))as string | undefined;
     if (!uid) {
       await tx.done;
       return {};
@@ -79,11 +79,16 @@ async function renderSplash(
 
 /** wasm模块兼容检测 */
 async function isBrowserCompatible(): Promise<boolean> {
-  const cached = db && await db.get(CONTEXT_STORE.NAME, CONTEXT_STORE.KEY.COMPAT);
-  if (cached === true) return true;
-
+  if (
+    db &&
+    await db.get(CONTEXT_STORE.NAME, CONTEXT_STORE.KEY.COMPAT).catch(e => {
+      console.error("Compatibility read failed:", e);
+    })
+  ) {
+    return true;
+  }
+  
   try {
-    loadWasm("rwp_engine")
     const engine = await getWasm("rwp_engine");
     const result = engine.check_wasm_feature();
 
@@ -114,14 +119,15 @@ export async function bootstrap(): Promise<boolean> {
   const themePromise = applyTheme(prefs.theme);
 
   const loadingPromise = (async () => {
-    await i18nPromise;
     await themePromise;
+    await i18nPromise;
     await renderSplash(
       commonI18n.loading,
       await iconPromise,
     );
   })();
 
+  loadWasm('rwp_engine')
   const compatOk = await isBrowserCompatible();
   if (!compatOk) {
     await loadI18nPkg('notifications');
@@ -129,7 +135,7 @@ export async function bootstrap(): Promise<boolean> {
     await renderSplash(i18nPkg.notifications.browserOutdated, await loadIcon('AlertCircle'), i18nPkg.notifications.wasm2Req);
     return false;
   }
-  loadWasm('rwp_engine')
+
   await loadingPromise;
   return true;
 }

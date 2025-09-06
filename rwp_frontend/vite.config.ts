@@ -2,6 +2,7 @@
 import { defineConfig } from 'vite';
 import preact from '@preact/preset-vite';
 import { fileURLToPath, URL } from 'node:url';
+import pkg from './package.json'
 
 export default defineConfig({
   plugins: [preact()],
@@ -15,5 +16,9 @@ export default defineConfig({
     host: '127.0.0.1',
     port: 5173,
     allowedHosts: ['betadevelop.com', 'localhost'],
+  },
+  define: {
+    APP_ID: JSON.stringify(pkg.name),
+    APP_VERSION: JSON.stringify(pkg.version),
   },
 });

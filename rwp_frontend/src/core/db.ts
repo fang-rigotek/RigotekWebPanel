@@ -11,9 +11,11 @@ export const CONTEXT_STORE = {
   NAME: "context",
   KEY: {
     COMPAT: "compat",
+    LAST_LOGIN_UID: "last_login_uid",
+    
     DEVICE_ID: "device_id",
     DEVICE_TOKEN: "device_token",
-    LAST_LOGIN_UID: "last_login_uid",
+    DEVICE_SEED: "device_seed",
   },
 } as const;
 

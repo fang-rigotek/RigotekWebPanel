@@ -1,11 +1,11 @@
 import { bootstrap } from './bootstrap';
-import { authGate } from './routes/auth-guard';
+import {ensureLoggedIn} from './ensure-logged-in';
 
 async function main() {
   const booted = await bootstrap();
   if (!booted) return;
 
-  authGate();
+  await ensureLoggedIn();
 }
 
 main();
