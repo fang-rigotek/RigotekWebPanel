@@ -8,7 +8,7 @@
   --color-bg-page: #f5f5f7;
   --color-fg: #000;
   --color-icon: #000;
-  --color-fg-paragraph: rgba(0, 0, 0, 0.56);
+  --color-fg-paragraph: #0000008f;
 }
 
 :root {
@@ -20,7 +20,7 @@
     --color-bg-page: #000;
     --color-fg: #fff;
     --color-icon: #fff;
-    --color-fg-paragraph: hsla(0, 0%, 100%, 0.66);
+    --color-fg-paragraph: #ffffffa8;
   }
 }
 
@@ -28,7 +28,7 @@
   --color-bg-page: #000;
   --color-fg: #fff;
   --color-icon: #fff;
-  --color-fg-paragraph: hsla(0, 0%, 100%, 0.66);
+  --color-fg-paragraph: #ffffffa8;
 }
 
 html,
