@@ -3,66 +3,13 @@
 
 import { UserToken, DeviceToken, context } from './context';
 import { db, genUserKey, USER_STORE, CONTEXT_STORE } from './core/db';
-
-interface AutoLoginData {
-  userId: string;
-  userToken: string;
-  deviceId?: string;
-  deviceToken?: string;
-  deviceFingerprint?: string;
-}
-
-function toBase64Url(bytes: Uint8Array): string {
-  try {
-    const b64 = btoa(String.fromCharCode(...bytes));
-    return b64.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
-  } catch (err) {
-    console.error("toBase64Url error:", err);
-    return "";
-  }
-}
-
-
-function makeRandomSeed(): string {
-  const bytes = new Uint8Array(24);
-  crypto.getRandomValues(bytes);
-  return toBase64Url(bytes);
-}
-
-async function getDeviceSeed(): Promise<string> {
-  try {
-    // 如果 db 不存在，直接生成随机种子（不存储）
-    if (!db) {
-      return makeRandomSeed();
-    }
-
-    // 有 db，则走读写流程
-    const tx = db.transaction(CONTEXT_STORE.NAME, "readwrite");
-    const store = tx.objectStore(CONTEXT_STORE.NAME);
-
-    let seed = await store.get(CONTEXT_STORE.KEY.DEVICE_SEED) as string | undefined;
-    if (seed) {
-      await tx.done;
-      return seed;
-    }
-
-    // 没有则生成 + 存入
-    seed = makeRandomSeed();
-    await store.put(seed, CONTEXT_STORE.KEY.DEVICE_SEED);
-    await tx.done;
-    return seed;
-  } catch (err) {
-    console.error("getDeviceSeed error:", err);
-    // 兜底：至少生成一个临时随机值返回（不存储）
-    return makeRandomSeed();
-  }
-}
+import { toBase64Url, getDeviceSeed } from './utils/crypto';
 
 declare const APP_ID: string;
 declare const APP_VERSION: string;
 
 /** 生成设备指纹（最小可用集 + WebCrypto SHA-256 -> base64url） */
-export async function genDeviceFingerprint(): Promise<string> {
+async function genDeviceFingerprint(): Promise<string> {
   try {
     const deviceSeed = await getDeviceSeed();
     if (!deviceSeed) return "";
@@ -135,8 +82,22 @@ export async function genDeviceFingerprint(): Promise<string> {
   }
 }
 
+export interface LoginData {
+  // 自动登录用（任选其一组）
+  userId?: string;
+  userToken?: string;
 
-async function loadAutoLoginData(): Promise<AutoLoginData | false> {
+  // 手动登录用（任选其一组）
+  username?: string;
+  password?: string;
+
+  // 公共复用
+  deviceId?: string;
+  deviceToken?: string;
+  deviceFingerprint?: string;
+}
+
+async function loadAutoLoginData(): Promise<LoginData | false> {
   try {
     if (!db) return false;
     if (!context.lastLogin) return false;
@@ -202,8 +163,35 @@ function cleanData<T extends Record<string, any>>(obj: T): Partial<T> {
   return result;
 }
 
+enum LoginStatusFlags {
+  SUCCESS = 1 << 0, // 登录成功
+  USER_ID_NOT_FOUND = 1 << 1, // 用户ID不存在（自动登录场景）
+  USERNAME_NOT_FOUND = 1 << 2, // 用户名不存在（手动登录场景）
+  PASSWORD_INCORRECT = 1 << 3, // 密码错误（手动登录场景）
+  USER_TOKEN_INVALID = 1 << 4, // 用户TOKEN无效（自动登录场景）
+  DEVICE_TOKEN_INVALID = 1 << 5, // 设备TOKEN无效（自动登录场景）
+  LOGIN_ATTEMPTS_EXCEEDED = 1 << 6, // 超出当日登录失败次数限制
+  IP_CHANGED = 1 << 7, // 用户IP地址发生变化（自动登录场景）
 
-async function autoLogin(): Promise<boolean> {
+  // 预留位：1 << 8 ~ 1 << 14
+  NETWORK_ERROR = 1 << 14, // 网络/HTTP 错误
+  CLIENT_ERROR = 1 << 15, // 前端程序错误
+}
+
+interface LoginResponse {
+  code: LoginStatusFlags; //登录结果
+  user?: {
+    id?: string; // 自动登录时通过id登录，无需返回id
+    name?: string;  // 手动登录时通过用户名登录，无需返回用户名
+    token?: UserToken; // 自动登录时通过token登录，无需返回Token
+  };
+  deviceId?: string; // 发送新deviceFingerprint时才返回
+  deviceToken?: DeviceToken; // 发送新deviceFingerprint时才返回
+}
+
+let loginStatus: LoginStatusFlags | undefined;
+
+async function autoLogin(_retried = false): Promise<boolean> {
   if (!context.isSecure) return false;
 
   const data = await loadAutoLoginData();
@@ -215,23 +203,62 @@ async function autoLogin(): Promise<boolean> {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(cleanData(data)),
     });
-    
+
     if (!resp.ok) {
       console.error("autoLogin failed:", resp.status, resp.statusText);
+      loginStatus = LoginStatusFlags.NETWORK_ERROR;
       return false;
     }
 
-    const result = await resp.json();
-    // TODO: 根据后端返回的 result 做进一步处理（比如更新 context、缓存新的 token）
-    console.log("autoLogin success:", result);
+    const result: LoginResponse = await resp.json();
+    loginStatus = result.code; // 无论成功失败都先记录
 
-    return true;
+    if ((result.code & LoginStatusFlags.SUCCESS) !== 0) {
+      if (!db) return true;
+
+      const tx = db.transaction([CONTEXT_STORE.NAME], "readwrite");
+      const store = tx.objectStore(CONTEXT_STORE.NAME);
+
+      if (result.deviceId) {
+        await store.put(result.deviceId, CONTEXT_STORE.KEY.DEVICE_ID);
+      }
+      if (result.deviceToken) {
+        await store.put(result.deviceToken, CONTEXT_STORE.KEY.DEVICE_TOKEN);
+      }
+
+      await tx.done;
+      return true;
+    }
+
+    if (
+      ((result.code & LoginStatusFlags.DEVICE_TOKEN_INVALID) !== 0) &&
+      db &&
+      !_retried
+    ) {
+      await db.delete(CONTEXT_STORE.NAME, CONTEXT_STORE.KEY.DEVICE_TOKEN);
+      return autoLogin(true);
+    }
+
+    return false;
+
   } catch (err) {
     console.error("autoLogin error:", err);
+    loginStatus = LoginStatusFlags.CLIENT_ERROR;
     return false;
   }
 }
 
-export async function ensureLoggedIn() {
+async function manualLogin() {
+  // 加载初始登录页
 
+  // 开始循环
+  // 等待用户点登录按钮后发LoginData
+  // 登录成功则结束循环
+  // 登录失败则根据失败原因，局部刷新提示语。
+  // .. 下一次循环等待用户点登录按钮后发LoginData
+}
+
+export async function ensureLoggedIn(): Promise<void> {
+  if (await autoLogin()) return;
+  await manualLogin();
 }
