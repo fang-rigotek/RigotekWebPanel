@@ -35,7 +35,21 @@
       var supportsES2022 = true;
       try { new Function("class A { static { } x = 1; }"); }
       catch (err) { supportsES2022 = false; }
-      if (!supportsES2022) {
+      if (supportsES2022) {
+        document.getElementById("root").innerHTML =
+          '<div class="status-page">' +
+          '<div class="status-content">' +
+          '<div class="status-header">' +
+          '<div class="status-title">' +
+          '<h5>Browser is outdated</h5>' +
+          '</div>' +
+          '</div>' +
+          '<div class="status-paragraph">' +
+          '<p>Rigotek Web Panel requires a browser that supports ECMAScript 2022 to run (e.g. Chrome 96+ or Safari 16.4+)</p>' +
+          '</div>' +
+          '</div>' +
+          '</div>';
+      } else {
         document.getElementById("root").innerHTML =
           '<div class="status-page">' +
           '<div class="status-content">' +
