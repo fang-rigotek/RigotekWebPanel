@@ -5,8 +5,9 @@ import { context } from './context';
 import { initDB, db, genUserKey, PREFS_STORE, CONTEXT_STORE } from './core/db';
 import { initI18n, loadI18nPkg, commonI18n, i18nPkg, type Lang } from './i18n';
 import { applyTheme, type Theme } from './style/theme';
-import { loadIcon, type Icon } from './components';
+import { type Icon } from './components';
 import { loadWasm, getWasm } from './core/wasm';
+import { iconLoadingLoop, iconAlertCircle } from './components/icons/common';
 
 
 type BootPrefs = {
@@ -21,7 +22,7 @@ async function readBootPrefs(): Promise<BootPrefs> {
     const tx = db.transaction([CONTEXT_STORE.NAME, PREFS_STORE.NAME], "readonly");
     const contextStore = tx.objectStore(CONTEXT_STORE.NAME);
 
-    const uid = (await contextStore.get(CONTEXT_STORE.KEY.LAST_LOGIN_UID))as string | undefined;
+    const uid = (await contextStore.get(CONTEXT_STORE.KEY.LAST_LOGIN_UID)) as string | undefined;
     if (!uid) {
       await tx.done;
       return {};
@@ -87,7 +88,7 @@ async function isBrowserCompatible(): Promise<boolean> {
   ) {
     return true;
   }
-  
+
   try {
     const engine = await getWasm("rwp_engine");
     const result = engine.check_wasm_feature();
@@ -111,28 +112,31 @@ async function isBrowserCompatible(): Promise<boolean> {
 // ===== 启动引导函数 =====
 export async function bootstrap(): Promise<boolean> {
   const dbPromise = initDB();
-  const iconPromise = loadIcon('LoadingLoop');
 
   await dbPromise;
   const prefs = await readBootPrefs();
-  const i18nPromise = initI18n(prefs.lang);
+
   const themePromise = applyTheme(prefs.theme);
 
   const loadingPromise = (async () => {
     await themePromise;
-    await i18nPromise;
+
     await renderSplash(
-      commonI18n.loading,
-      await iconPromise,
+      'loading...',
+      iconLoadingLoop,
     );
   })();
 
+  const i18nPromise = initI18n(prefs.lang);
+
   loadWasm('rwp_engine')
   const compatOk = await isBrowserCompatible();
+  
+  await i18nPromise;
   if (!compatOk) {
     await loadI18nPkg('notifications');
     await loadingPromise;
-    await renderSplash(i18nPkg.notifications.browserOutdated, await loadIcon('AlertCircle'), i18nPkg.notifications.wasm2Req);
+    await renderSplash(i18nPkg.notifications.browserOutdated, iconAlertCircle, i18nPkg.notifications.wasm2Req);
     return false;
   }
 
