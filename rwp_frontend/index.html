@@ -28,14 +28,20 @@
     </noscript>
   </div>
 
-  <script type="module" src="./src/main.tsx" id="main"></script>
+  <script type="module" src="./src/main.tsx"></script>
 
-  <script>
-    (function () {
-      var supportsES2022 = true;
-      try { new Function("class A { static { } x = 1; }"); }
-      catch (err) { supportsES2022 = false; }
-      if (!supportsES2022) {
+<script>
+(function () {
+  var supportsES2022 = true;
+  try { new Function("class A { static { } x = 1; }"); }
+  catch (err) { supportsES2022 = false; }
+
+  if (supportsES2022) {
+    var s = document.createElement('script');
+    s.type = 'module';
+    s.src = '/assets/index-DTj3Vy9Z.js'; //编译后替换
+    document.head.appendChild(s);
+  } else {
         document.getElementById("root").innerHTML =
           '<div class="status-page">' +
           '<div class="status-content">' +
@@ -49,8 +55,6 @@
           '</div>' +
           '</div>' +
           '</div>';
-        var el = document.getElementById("main");
-        el.parentNode.removeChild(el);
       }
     })();
   </script>
