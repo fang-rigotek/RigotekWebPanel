@@ -16,6 +16,8 @@ export const CONTEXT_STORE = {
     DEVICE_ID: "device_id",
     DEVICE_TOKEN: "device_token",
     DEVICE_SEED: "device_seed",
+
+    SERVER_PUBKEY: "server_pubkey",
   },
 } as const;
 
