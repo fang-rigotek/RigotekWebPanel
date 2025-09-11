@@ -3,7 +3,8 @@
 
 import { UserToken, DeviceToken, context } from './context';
 import { db, genUserKey, USER_STORE, CONTEXT_STORE } from './core/db';
-import {genDeviceFingerprint} from '@/security/auth'
+import { genDeviceFingerprint } from '@/security/auth'
+import { decryptMessageFromJson, EncryptedMessage, encryptMessageToJson, initSessionCrypto, isConnSecure, setIsConnSecure } from './security/session';
 
 export interface LoginData {
   // 自动登录用（任选其一组）
@@ -76,6 +77,7 @@ async function loadAutoLoginData(): Promise<LoginData | false> {
   }
 }
 
+// 只保留键值对中有数据的值
 function cleanData<T extends Record<string, any>>(obj: T): Partial<T> {
   const result: Partial<T> = {};
   for (const [k, v] of Object.entries(obj)) {
@@ -115,16 +117,83 @@ interface LoginResponse {
 
 let loginStatus: LoginStatusFlags | undefined;
 
+enum LoginMsgType {
+  AUTO = 1,           // 自动登录（明文）
+  AUTO_ENCRYPTED = 2, // 自动登录（加密）
+  MANUAL = 3,         // 手动登录（明文）
+  MANUAL_ENCRYPTED = 4, // 手动登录（加密）
+}
+
+interface LoginRequestMsg {
+  type: LoginMsgType;
+  msg: LoginData | EncryptedMessage;
+  timestamp: number;   // 客户端发起时间 (Unix 时间戳)
+}
+
+// 判别联合：响应消息
+type LoginResponseMsg =
+  | { type: LoginMsgType.AUTO; msg: LoginResponse }
+  | { type: LoginMsgType.AUTO_ENCRYPTED; msg: EncryptedMessage };
+
+// 小工具：位标志判断
+const hasFlag = (code: number, flag: number) => (code & flag) !== 0;
+
+// 小工具：安全 JSON 解析
+function safeParseJSON<T>(text: string): T | null {
+  try { return JSON.parse(text) as T; } catch { return null; }
+}
+
+// 构造请求（封装 isConnSecure 分支）
+async function buildLoginRequestMsg(data: LoginData): Promise<LoginRequestMsg> {
+  const timestamp = Date.now();
+  if (isConnSecure) {
+    return { type: LoginMsgType.AUTO, msg: data, timestamp };
+  }
+  return {
+    type: LoginMsgType.AUTO_ENCRYPTED,
+    msg: await encryptMessageToJson(JSON.stringify(cleanData(data))),
+    timestamp,
+  };
+}
+
+// 解包响应（封装解密 + 解析）
+async function decodeLoginResponseMsg(respMsg: LoginResponseMsg): Promise<LoginResponse> {
+  switch (respMsg.type) {
+    case LoginMsgType.AUTO:
+      return respMsg.msg;
+    case LoginMsgType.AUTO_ENCRYPTED: {
+      const plaintext = await decryptMessageFromJson(respMsg.msg);
+      const parsed = safeParseJSON<LoginResponse>(plaintext);
+      if (!parsed) throw new Error("Invalid JSON in encrypted response");
+      return parsed;
+    }
+  }
+}
+
 async function autoLogin(_retried = false): Promise<boolean> {
+  // 这里你变更为要求 db 存在才进行自动登录；如果希望「即使没有 db 也能登录成功」，
+  // 可以把这一行挪到写入设备信息前的分支里。
+  if (!db) return false;
+
   const data = await loadAutoLoginData();
   if (!data) return false;
 
   try {
+    // 10 秒超时，避免网络悬挂
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 10_000);
+
+    const loginRequest = await buildLoginRequestMsg(data);
+
     const resp = await fetch("/auth/auto-login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(cleanData(data)),
+      // credentials: "include", // 若用 Cookie 会话，别忘加上
+      signal: controller.signal,
+      body: JSON.stringify(loginRequest),
     });
+
+    clearTimeout(timer);
 
     if (!resp.ok) {
       console.error("autoLogin failed:", resp.status, resp.statusText);
@@ -132,12 +201,22 @@ async function autoLogin(_retried = false): Promise<boolean> {
       return false;
     }
 
-    const result: LoginResponse = await resp.json();
-    loginStatus = result.code; // 无论成功失败都先记录
+    // 防御：确保是 JSON
+    const contentType = resp.headers.get("content-type") || "";
+    if (!contentType.includes("application/json")) {
+      console.error("autoLogin invalid content-type:", contentType);
+      loginStatus = LoginStatusFlags.NETWORK_ERROR;
+      return false;
+    }
 
-    if ((result.code & LoginStatusFlags.SUCCESS) !== 0) {
-      if (!db) return true;
+    const respMsg: LoginResponseMsg = await resp.json();
+    const result = await decodeLoginResponseMsg(respMsg);
 
+    // 记录状态码
+    loginStatus = result.code;
+
+    if (hasFlag(result.code, LoginStatusFlags.SUCCESS)) {
+      // 写回本地（你此处已确保 db 存在）
       const tx = db.transaction([CONTEXT_STORE.NAME], "readwrite");
       const store = tx.objectStore(CONTEXT_STORE.NAME);
 
@@ -147,17 +226,20 @@ async function autoLogin(_retried = false): Promise<boolean> {
       if (result.deviceToken) {
         await store.put(result.deviceToken, CONTEXT_STORE.KEY.DEVICE_TOKEN);
       }
-
       await tx.done;
       return true;
     }
 
-    if (
-      ((result.code & LoginStatusFlags.DEVICE_TOKEN_INVALID) !== 0) &&
-      db &&
-      !_retried
-    ) {
+    // 设备 token 失效：清一次重试一次
+    if (hasFlag(result.code, LoginStatusFlags.DEVICE_TOKEN_INVALID) && !_retried) {
       await db.delete(CONTEXT_STORE.NAME, CONTEXT_STORE.KEY.DEVICE_TOKEN);
+      return autoLogin(true);
+    }
+
+    // 服务器判定连接不安全：降级到加密重试一次
+    if (hasFlag(result.code, LoginStatusFlags.CONNECTION_INSECURE) && !_retried) {
+      setIsConnSecure(false);
+      await initSessionCrypto();
       return autoLogin(true);
     }
 

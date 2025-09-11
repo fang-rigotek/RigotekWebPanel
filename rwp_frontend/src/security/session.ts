@@ -3,7 +3,7 @@ import { db, CONTEXT_STORE } from "@/core/db";
 import { toB64Url, fromB64Url, randomBytes } from "@/utils/crypto";
 
 // === 加载时一次性判断是否安全连接（保留原样） ===
-export const isConnSecure = ((): boolean => {
+export let isConnSecure = ((): boolean => {
   // 1) https 一票通过
   if (window.location.protocol === "https:") return true;
 
@@ -37,6 +37,10 @@ export const isConnSecure = ((): boolean => {
   // 其它一律不安全
   return false;
 })();
+
+export function setIsConnSecure(value: boolean) {
+  isConnSecure = value;
+}
 
 let sessionAesKey: CryptoKey | null = null;
 let sessionInitPromise: Promise<void> | null = null;
@@ -129,8 +133,13 @@ export function initSessionCrypto(): Promise<void> {
   return sessionInitPromise;
 }
 
+export interface EncryptedMessage {
+  iv: string;  // 初始化向量，Base64Url 编码
+  ct: string;  // 密文内容，Base64Url 编码
+}
+
 // 加密消息 → JSON
-export async function encryptMessageToJson(plaintext: string | Uint8Array) {
+export async function encryptMessageToJson(plaintext: string | Uint8Array): Promise<EncryptedMessage> {
   await initSessionCrypto();
   if (!sessionAesKey) throw new Error("Session key not ready");
 
@@ -155,5 +164,25 @@ export async function encryptMessageToJson(plaintext: string | Uint8Array) {
     iv: toB64Url(iv),
     ct: toB64Url(ctBuf),
   };
+}
 
+
+// JSON → 解密消息
+export async function decryptMessageFromJson(msg: EncryptedMessage): Promise<string> {
+  await initSessionCrypto();
+  if (!sessionAesKey) throw new Error("Session key not ready");
+
+  // 1) 把 iv / ct 从 Base64Url 转回 ArrayBuffer
+  const ivBuf = fromB64Url(msg.iv); // 应返回 ArrayBuffer 或 Uint8Array
+  const ctBuf = fromB64Url(msg.ct);
+
+  // 2) 调用 decrypt
+  const ptBuf = await crypto.subtle.decrypt(
+    { name: "AES-GCM", iv: ivBuf, tagLength: 128 },
+    sessionAesKey,
+    ctBuf
+  );
+
+  // 3) 解码成字符串（如果你需要 Uint8Array 就不要 decode）
+  return new TextDecoder().decode(ptBuf);
 }
