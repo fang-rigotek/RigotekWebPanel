@@ -3,7 +3,7 @@
 
 import { UserToken, DeviceToken, context } from './context';
 import { db, genUserKey, USER_STORE, CONTEXT_STORE } from './core/db';
-import { toBase64Url, getDeviceSeed } from './utils/crypto';
+import { toB64Url, getDeviceSeed } from './utils/crypto';
 
 declare const APP_ID: string;
 declare const APP_VERSION: string;
@@ -75,7 +75,7 @@ async function genDeviceFingerprint(): Promise<string> {
     const digest = await crypto.subtle.digest("SHA-256", data);
 
     // 输出 base64url
-    return toBase64Url(new Uint8Array(digest));
+    return toB64Url(new Uint8Array(digest));
   } catch (err) {
     console.error("genDeviceFingerprint error:", err);
     return "";
@@ -192,7 +192,6 @@ interface LoginResponse {
 let loginStatus: LoginStatusFlags | undefined;
 
 async function autoLogin(_retried = false): Promise<boolean> {
-  if (!context.isSecure) return false;
 
   const data = await loadAutoLoginData();
   if (!data) return false;

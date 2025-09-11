@@ -3,11 +3,12 @@
 import { render } from 'preact';
 import { context } from './context';
 import { initDB, db, genUserKey, PREFS_STORE, CONTEXT_STORE } from './core/db';
-import { initI18n, loadI18nPkg, commonI18n, i18nPkg, type Lang } from './i18n';
+import { initI18n, loadI18nPkg, i18nPkg, type Lang } from './i18n';
 import { applyTheme, type Theme } from './style/theme';
 import { type Icon } from './components';
 import { iconLoadingLoop, iconAlertCircle } from './components/icons/common';
 import { loadWasm, getWasm } from './core/wasm';
+import { initSessionCrypto } from './security/session';
 
 
 type BootPrefs = {
@@ -145,7 +146,8 @@ export async function bootstrap(): Promise<boolean> {
     });
     return false;
   }
-
+  
+  initSessionCrypto()
   await loadingPromise;
   return true;
 }
