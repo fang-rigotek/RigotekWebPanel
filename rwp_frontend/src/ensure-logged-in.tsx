@@ -5,27 +5,22 @@ import { context } from './context';
 import { db, genUserKey, USER_STORE, CONTEXT_STORE } from './core/db';
 import { DeviceToken, genDeviceFingerprint, UserToken } from '@/security/auth'
 import { decryptMessageFromJson, EncryptedMessage, encryptMessageToJson, initSessionCrypto, isConnSecure, setIsConnSecure } from './security/session';
+import { cleanData } from './utils/json';
 
-export interface LoginData {
-  // 自动登录用（任选其一组）
-  userId?: string;
-  userToken?: string;
+export interface AutoLoginData {
+  userId: string;
+  userToken: string;
 
-  // 手动登录用（任选其一组）
-  username?: string;
-  password?: string;
-
-  // 公共复用
   deviceId?: string;
   deviceToken?: string;
   deviceFingerprint?: string;
 }
 
-async function loadAutoLoginData(): Promise<LoginData | false> {
-  try {
-    if (!db) return false;
-    if (!context.lastLogin) return false;
+async function loadAutoLoginData(): Promise<AutoLoginData | false> {
+  if (!db) return false;
+  if (!context.lastLogin) return false;
 
+  try {
     const tx = db.transaction([USER_STORE.NAME, CONTEXT_STORE.NAME], "readwrite");
 
     // 读取用户令牌
@@ -77,17 +72,6 @@ async function loadAutoLoginData(): Promise<LoginData | false> {
   }
 }
 
-// 只保留键值对中有数据的值
-function cleanData<T extends Record<string, any>>(obj: T): Partial<T> {
-  const result: Partial<T> = {};
-  for (const [k, v] of Object.entries(obj)) {
-    if (v !== undefined && v !== null && v !== "") {
-      (result as any)[k] = v;
-    }
-  }
-  return result;
-}
-
 enum LoginStatusFlags {
   SUCCESS = 1 << 0, // 登录成功
   USER_ID_NOT_FOUND = 1 << 1, // 用户ID不存在（自动登录场景）
@@ -126,7 +110,7 @@ enum LoginMsgType {
 
 interface LoginRequestMsg {
   type: LoginMsgType;
-  msg: LoginData | EncryptedMessage;
+  msg: AutoLoginData | EncryptedMessage;
   timestamp: number;   // 客户端发起时间 (Unix 时间戳)
 }
 
@@ -144,7 +128,7 @@ function safeParseJSON<T>(text: string): T | null {
 }
 
 // 构造请求（封装 isConnSecure 分支）
-async function buildLoginRequestMsg(data: LoginData): Promise<LoginRequestMsg> {
+async function buildLoginRequestMsg(data: AutoLoginData): Promise<LoginRequestMsg> {
   const timestamp = Date.now();
   if (isConnSecure) {
     return { type: LoginMsgType.AUTO, msg: data, timestamp };
