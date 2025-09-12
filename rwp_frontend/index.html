@@ -7,7 +7,7 @@
   <meta name="color-scheme" content="light dark" />
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="/styles/base.css" data-type="global" />
-  <title>Rigotek Web Panel</title>
+  <title>Rigotek Panel</title>
 </head>
 
 <body>
@@ -21,7 +21,7 @@
             </div>
           </div>
           <div class="status-paragraph">
-            <p>Rigotek Web Panel requires JavaScript enabled to run</p>
+            <p>Rigotek Panel requires JavaScript enabled to run</p>
           </div>
         </div>
       </div>
@@ -37,10 +37,10 @@
   catch (err) { supportsES2022 = false; }
 
   if (supportsES2022) {
-    var s = document.createElement('script');
-    s.type = 'module';
-    s.src = '/assets/index-DTj3Vy9Z.js'; //编译后替换
-    document.head.appendChild(s);
+    // var s = document.createElement('script');
+    // s.type = 'module';
+    // s.src = '/assets/index-XXX.js'; // Replace after compilation
+    // document.head.appendChild(s);
   } else {
         document.getElementById("root").innerHTML =
           '<div class="status-page">' +
@@ -51,7 +51,7 @@
           '</div>' +
           '</div>' +
           '<div class="status-paragraph">' +
-          '<p>Rigotek Web Panel requires a browser that supports ECMAScript 2022 to run (e.g. Chrome 96+ or Safari 16.4+)</p>' +
+          '<p>Rigotek Panel requires a browser that supports ECMAScript 2022 to run (e.g. Chrome 96+ or Safari 16.4+)</p>' +
           '</div>' +
           '</div>' +
           '</div>';

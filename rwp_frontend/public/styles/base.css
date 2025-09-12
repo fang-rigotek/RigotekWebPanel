@@ -112,6 +112,9 @@ svg,
 }
 
 .status-content {
+  display: flex;
+  flex-direction: column; /* 垂直排列 */
+  gap: 6px;               /* 元素之间的间距 */
   text-align: center;
 }
 
@@ -126,10 +129,6 @@ svg,
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-.status-header + .status-paragraph {
-  margin-top: 6px;
 }
 
 .status-title h5 {

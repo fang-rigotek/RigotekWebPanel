@@ -1,5 +1,6 @@
 // rwp_frontend/src/bootstrap.tsx
 // 应用引导入口
+
 import { render } from 'preact';
 import { context } from './context';
 import { initDB, db, genUserKey, PREFS_STORE, CONTEXT_STORE } from './core/db';
