@@ -113,23 +113,12 @@ async function isBrowserCompatible(): Promise<boolean> {
 
 // ===== 启动引导函数 =====
 export async function bootstrap(): Promise<boolean> {
-  const dbPromise = initDB();
+  await initDB();
 
-  await dbPromise;
   const prefs = await readBootPrefs();
+  await applyTheme(prefs.theme);
 
-  const themePromise = applyTheme(prefs.theme);
-
-  const loadingPromise = (async () => {
-    await themePromise;
-
-    await renderStatusPage(
-      'Loading...',
-      iconLoadingLoop,
-    );
-  })();
-
-  context.setUiRenderPromise(loadingPromise)
+  context.setUiRenderPromise(renderStatusPage('Loading...', iconLoadingLoop))
   const i18nPromise = initI18n(prefs.lang);
 
   loadWasm('rwp_engine')
@@ -140,7 +129,6 @@ export async function bootstrap(): Promise<boolean> {
     const modPromise = import(`./pages/status-page`);
     await loadI18nPkg('notifications');
     const mod = await modPromise;
-    await context.uiRenderPromise;
     await mod.updateStatusPage({
       text: i18nPkg.notifications.browserOutdated,
       IconComponent: iconAlertCircle,
@@ -148,7 +136,7 @@ export async function bootstrap(): Promise<boolean> {
     });
     return false;
   }
-  
+
   initSessionCrypto()
   return true;
 }

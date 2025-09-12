@@ -1,7 +1,7 @@
 // rwp_frontend/src/style/loader.ts
 
 /** 加载 page 样式，始终插在 global 样式之后 */
-export function loadPageStylesheet(href: string): Promise<void> {
+export function loadStylesheet(href: string): Promise<void> {
   const exists = document.querySelector<HTMLLinkElement>(
     `link[rel="stylesheet"][href="${href}"]`
   );
@@ -23,7 +23,7 @@ export function loadPageStylesheet(href: string): Promise<void> {
 }
 
 /** 卸载 page 样式（只移除第一个匹配项，带错误处理） */
-export function unloadPageStylesheet(href: string): void {
+export function unloadStylesheet(href: string): void {
   try {
     const link = document.querySelector<HTMLLinkElement>(
       `link[rel="stylesheet"][href="${href}"]`

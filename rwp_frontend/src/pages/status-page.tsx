@@ -1,5 +1,6 @@
 import { render } from 'preact';
 import { type Icon } from '@/components';
+import { context } from '@/context';
 
 /** 局部刷新状态页 */
 export async function updateStatusPage({
@@ -17,6 +18,8 @@ export async function updateStatusPage({
 
   // 以 header 的位置作为基准，解决垂直居中时看不到位移的问题
   const firstHeaderTop = statusHeader.getBoundingClientRect().top;
+
+  await context.uiRenderPromise;
 
   // —— 更新标题 —— //
   if (text !== undefined) {
