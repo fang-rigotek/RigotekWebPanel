@@ -1,23 +1,20 @@
 // src/context/index.ts
-export interface UserToken {
-  token: string;
-  expiresAt: number;
-}
-
-export interface DeviceToken {
-  token: string;
-  expiresAt: number;
-}
-
 
 interface Context {
   lastLogin: string | null;
   setLastLogin: (id: string | null) => void;
 
-  initialPath: string;
+  initialPath: {
+    pathname: string;
+    search: string;
+    hash: string;
+  };
 
   sessionId: string | null;
   setSessionId: (id: string | null) => void;
+
+  uiRenderPromise: Promise<void> | null;
+  setUiRenderPromise: (p: Promise<void> | null) => void;
 }
 
 export const context: Context = {
@@ -26,13 +23,19 @@ export const context: Context = {
     this.lastLogin = id;
   },
 
-  initialPath:
-    window.location.pathname +
-    window.location.search +
-    window.location.hash,
+  initialPath: {
+    pathname: window.location.pathname,
+    search: window.location.search,
+    hash: window.location.hash,
+  },
 
   sessionId: null,
   setSessionId(id: string | null) {
     this.sessionId = id;
+  },
+
+  uiRenderPromise: null,
+  setUiRenderPromise(p: Promise<void> | null) {
+    this.uiRenderPromise = p;
   },
 };

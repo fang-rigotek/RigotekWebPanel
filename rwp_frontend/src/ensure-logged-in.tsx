@@ -1,9 +1,9 @@
 // src/authGate.tsx
 // 登录门禁逻辑骨架
 
-import { UserToken, DeviceToken, context } from './context';
+import { context } from './context';
 import { db, genUserKey, USER_STORE, CONTEXT_STORE } from './core/db';
-import { genDeviceFingerprint } from '@/security/auth'
+import { DeviceToken, genDeviceFingerprint, UserToken } from '@/security/auth'
 import { decryptMessageFromJson, EncryptedMessage, encryptMessageToJson, initSessionCrypto, isConnSecure, setIsConnSecure } from './security/session';
 
 export interface LoginData {

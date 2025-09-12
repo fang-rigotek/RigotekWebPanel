@@ -1,5 +1,15 @@
 import { getDeviceSeed, toB64Url } from "@/utils/crypto";
 
+export interface UserToken {
+  token: string;
+  expiresAt: number;
+}
+
+export interface DeviceToken {
+  token: string;
+  expiresAt: number;
+}
+
 declare const APP_ID: string;
 declare const APP_VERSION: string;
 

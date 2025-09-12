@@ -129,6 +129,7 @@ export async function bootstrap(): Promise<boolean> {
     );
   })();
 
+  context.setUiRenderPromise(loadingPromise)
   const i18nPromise = initI18n(prefs.lang);
 
   loadWasm('rwp_engine')
@@ -139,7 +140,7 @@ export async function bootstrap(): Promise<boolean> {
     const modPromise = import(`./pages/status-page`);
     await loadI18nPkg('notifications');
     const mod = await modPromise;
-    await loadingPromise;
+    await context.uiRenderPromise;
     await mod.updateStatusPage({
       text: i18nPkg.notifications.browserOutdated,
       IconComponent: iconAlertCircle,
@@ -149,6 +150,5 @@ export async function bootstrap(): Promise<boolean> {
   }
   
   initSessionCrypto()
-  await loadingPromise;
   return true;
 }
