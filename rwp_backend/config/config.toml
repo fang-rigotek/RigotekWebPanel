@@ -2,3 +2,6 @@
 
 [database]
 path = "data/rigotek_panel.db"
+
+[server]
+port = 11082
