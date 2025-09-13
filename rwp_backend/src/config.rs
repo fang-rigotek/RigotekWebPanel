@@ -3,12 +3,6 @@
 use serde::Deserialize;
 
 #[derive(Debug, Clone, Deserialize)]
-pub struct Config {
-    pub server: Server,
-    pub database: Database,
-}
-
-#[derive(Debug, Clone, Deserialize)]
 pub struct Server {
     pub port: u16,
 }
@@ -16,6 +10,12 @@ pub struct Server {
 #[derive(Debug, Clone, Deserialize)]
 pub struct Database {
     pub path: String,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+pub struct Config {
+    pub server: Server,
+    pub database: Database,
 }
 
 impl Default for Config {
