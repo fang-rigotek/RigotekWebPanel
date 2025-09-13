@@ -1,0 +1,4 @@
+# config/config.toml
+
+[database]
+path = "data/rigotek_panel.db"

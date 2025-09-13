@@ -341,6 +341,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "redb"
+version = "3.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3fefa3e5ff4a369819c3d6df4195873d6f9abad109f13c0d505dbe119cfabb10"
+dependencies = [
+ "libc",
+]
+
+[[package]]
 name = "rustc-demangle"
 version = "0.1.26"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -357,6 +366,7 @@ name = "rwp_backend"
 version = "0.0.0"
 dependencies = [
  "axum",
+ "redb",
  "tokio",
 ]
 
