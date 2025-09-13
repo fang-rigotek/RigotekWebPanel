@@ -1,16 +1,14 @@
 // rwp_frontend/src/bootstrap.tsx
 // 应用引导入口
 
-import { render } from 'preact';
-import { context } from './context';
-import { initDB, db, genUserKey, PREFS_STORE, CONTEXT_STORE } from './core/db';
-import { initI18n, loadI18nPkg, i18nPkg, type Lang } from './i18n';
-import { applyTheme, type Theme } from './style/theme';
-import { type Icon } from './components';
-import { iconLoadingLoop, iconAlertCircle } from './components/icons/common';
-import { loadWasm, getWasm } from './core/wasm';
-import { initSessionCrypto } from './security/session';
-
+import { context } from '@/context';
+import { initDB, db, genUserKey, PREFS_STORE, CONTEXT_STORE } from '@/core/db';
+import { applyTheme, type Theme } from '@/style/theme';
+import { iconLoadingLoop, iconAlertCircle } from '@/components/icons/common';
+import { renderStatusPage, updateStatusPage } from '@/pages/status-page';
+import { initI18n, loadI18nPkg, i18nPkg, type Lang } from '@/i18n';
+import { loadWasm, getWasm } from '@/core/wasm';
+import { initSessionCrypto } from '@/security/session';
 
 type BootPrefs = {
   theme?: Theme;
@@ -46,38 +44,6 @@ async function readBootPrefs(): Promise<BootPrefs> {
     console.error("Failed to read boot prefs:", err);
     return {};
   }
-}
-
-/** 渲染状态页 */
-async function renderStatusPage(
-  text: string,
-  IconComponent?: Icon,
-  paragraph?: string,
-): Promise<void> {
-  const Splash = () => (
-    <div className="status-page">
-      <div className="status-content">
-        <div className="status-header">
-          {IconComponent && (
-            <div className="status-icon">
-              <IconComponent className="icon" />
-            </div>
-          )}
-          <div className="status-title">
-            <h5>{text}</h5>
-          </div>
-        </div>
-        {paragraph && (
-          <div className="status-paragraph">
-            <p>{paragraph}</p>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-  render(<Splash />, document.getElementById("root")!);
-  const delay = new Promise(r => setTimeout(r, 500));
-  await delay;
 }
 
 /** wasm模块兼容检测 */
@@ -118,7 +84,9 @@ export async function bootstrap(): Promise<boolean> {
   const prefs = await readBootPrefs();
   await applyTheme(prefs.theme);
 
-  context.setUiRenderPromise(renderStatusPage('Loading...', iconLoadingLoop))
+  context.setUiRenderPromise(
+    renderStatusPage('Loading...', iconLoadingLoop)
+  )
   const i18nPromise = initI18n(prefs.lang);
 
   loadWasm('rwp_engine')
@@ -126,14 +94,14 @@ export async function bootstrap(): Promise<boolean> {
   await i18nPromise;
 
   if (!compatOk) {
-    const modPromise = import(`./pages/status-page`);
     await loadI18nPkg('notifications');
-    const mod = await modPromise;
-    await mod.updateStatusPage({
-      text: i18nPkg.notifications.browserOutdated,
-      IconComponent: iconAlertCircle,
-      paragraph: i18nPkg.notifications.wasm2Req
-    });
+    context.setUiRenderPromise(
+      updateStatusPage({
+        text: i18nPkg.notifications.browserOutdated,
+        IconComponent: iconAlertCircle,
+        paragraph: i18nPkg.notifications.wasm2Req
+      })
+    )
     return false;
   }
 

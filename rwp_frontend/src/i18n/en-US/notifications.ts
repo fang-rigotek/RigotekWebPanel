@@ -2,6 +2,7 @@
 
 export default {
   browserOutdated: 'Browser is outdated',
+  serverError: 'Server error',
 
   // jsReq:'Rigotek Panel requires JavaScript enabled to run',
   // ecma2022Req:'Rigotek Panel requires a browser that supports ECMAScript 2022 to run (e.g. Chrome 96+ or Safari 16.4+)',

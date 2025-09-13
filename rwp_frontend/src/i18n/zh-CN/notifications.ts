@@ -2,6 +2,7 @@
 
 export default {
   browserOutdated: '浏览器过旧',
+  serverError: '服务器程序错误',
 
   // jsReq:'运行 Rigotek Panel 需启用 JavaScript',
   // ecma2022Req:'运行 Rigotek Panel 需支持 ECMAScript 2022 的浏览器 (如 Chrome 96+ 或 Safari 16.4+)',

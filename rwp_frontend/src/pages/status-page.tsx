@@ -2,6 +2,37 @@ import { render } from 'preact';
 import { type Icon } from '@/components';
 import { context } from '@/context';
 
+export async function renderStatusPage(
+  text: string,
+  IconComponent?: Icon,
+  paragraph?: string,
+): Promise<void> {
+  const Splash = () => (
+    <div className="status-page">
+      <div className="status-content">
+        <div className="status-header">
+          {IconComponent && (
+            <div className="status-icon">
+              <IconComponent className="icon" />
+            </div>
+          )}
+          <div className="status-title">
+            <h5>{text}</h5>
+          </div>
+        </div>
+        {paragraph && (
+          <div className="status-paragraph">
+            <p>{paragraph}</p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+  render(<Splash />, document.getElementById("root")!);
+  const delay = new Promise(r => setTimeout(r, 500));
+  await delay;
+}
+
 /** 局部刷新状态页 */
 export async function updateStatusPage({
   text,
@@ -13,13 +44,22 @@ export async function updateStatusPage({
   paragraph?: string;
 }): Promise<void> {
   const root = document.getElementById("root")!;
+
+  const statusPage = root.querySelector('.status-page') as HTMLElement;
+  if (!statusPage) {
+    await renderStatusPage(text!, IconComponent, paragraph)
+    return
+  }
+
   const statusContent = root.querySelector(".status-content") as HTMLElement;
   const statusHeader = root.querySelector(".status-header") as HTMLElement;
 
   // 以 header 的位置作为基准，解决垂直居中时看不到位移的问题
   const firstHeaderTop = statusHeader.getBoundingClientRect().top;
 
-  await context.uiRenderPromise;
+  if (context.uiRenderPromise) {
+    await context.uiRenderPromise;
+  }
 
   // —— 更新标题 —— //
   if (text !== undefined) {

@@ -1,5 +1,5 @@
 // src/core/db.ts
-import { openDB, IDBPDatabase, DBSchema } from "idb";
+import { openDB, IDBPDatabase } from "idb";
 
 interface RwpDB {
   prefs:  { key: string; value: unknown };

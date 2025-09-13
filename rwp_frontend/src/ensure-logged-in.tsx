@@ -1,11 +1,13 @@
 // src/authGate.tsx
 // 登录门禁逻辑骨架
 
-import { context } from './context';
-import { db, genUserKey, USER_STORE, CONTEXT_STORE } from './core/db';
+import { context } from '@/context';
+import { db, genUserKey, USER_STORE, CONTEXT_STORE } from '@/core/db';
 import { DeviceToken, genDeviceFingerprint, UserToken } from '@/security/auth'
-import { decryptMessageFromJson, EncryptedMessage, encryptMessageToJson, initSessionCrypto, isConnSecure, setIsConnSecure } from './security/session';
-import { cleanData } from './utils/json';
+import { decryptMessageFromJson, EncryptedMessage, encryptMessageToJson, initSessionCrypto, isConnSecure, setIsConnSecure } from '@/security/session';
+import { cleanData } from '@/utils/json';
+import { iconAlertCircle } from '@/components/icons/common';
+import { i18nPkg, loadI18nPkg } from '@/i18n';
 
 export interface AutoLoginData {
   userId: string;
@@ -83,20 +85,17 @@ enum LoginStatusFlags {
   IP_CHANGED = 1 << 7, // 用户IP地址发生变化（自动登录场景）
   CONNECTION_INSECURE = 1 << 8, // 服务器判定连接不安全
 
-  // 预留位：1 << 9 ~ 1 << 14
-  NETWORK_ERROR = 1 << 14, // 网络/HTTP 错误
-  CLIENT_ERROR = 1 << 15, // 前端程序错误
+  CLIENT_ERROR = 1 << 13, // 前端程序错误
+  SERVER_ERROR = 1 << 14, // 后端程序错误
+  NETWORK_ERROR = 1 << 15, // 网络/HTTP 错误
 }
 
-interface LoginResponse {
-  code: LoginStatusFlags; //登录结果
-  user?: {
-    id?: string; // 自动登录时通过id登录，无需返回id
-    name?: string;  // 手动登录时通过用户名登录，无需返回用户名
-    token?: UserToken; // 自动登录时通过token登录，无需返回Token
-  };
-  deviceId?: string; // 发送新deviceFingerprint时才返回
-  deviceToken?: DeviceToken; // 发送新deviceFingerprint时才返回
+interface AutoLoginResponse {
+  code: LoginStatusFlags;
+  username: string;
+  deviceId?: string; // 发送新 deviceFingerprint 时才返回
+  deviceToken?: DeviceToken; // 发送新 deviceFingerprint 时才返回
+  errorMessage?: string;
 }
 
 let loginStatus: LoginStatusFlags | undefined;
@@ -116,7 +115,7 @@ interface LoginRequestMsg {
 
 // 判别联合：响应消息
 type LoginResponseMsg =
-  | { type: LoginMsgType.AUTO; msg: LoginResponse }
+  | { type: LoginMsgType.AUTO; msg: AutoLoginResponse }
   | { type: LoginMsgType.AUTO_ENCRYPTED; msg: EncryptedMessage };
 
 // 小工具：位标志判断
@@ -141,13 +140,13 @@ async function buildLoginRequestMsg(data: AutoLoginData): Promise<LoginRequestMs
 }
 
 // 解包响应（封装解密 + 解析）
-async function decodeLoginResponseMsg(respMsg: LoginResponseMsg): Promise<LoginResponse> {
+async function decodeLoginResponseMsg(respMsg: LoginResponseMsg): Promise<AutoLoginResponse> {
   switch (respMsg.type) {
     case LoginMsgType.AUTO:
       return respMsg.msg;
     case LoginMsgType.AUTO_ENCRYPTED: {
       const plaintext = await decryptMessageFromJson(respMsg.msg);
-      const parsed = safeParseJSON<LoginResponse>(plaintext);
+      const parsed = safeParseJSON<AutoLoginResponse>(plaintext);
       if (!parsed) throw new Error("Invalid JSON in encrypted response");
       return parsed;
     }
@@ -200,13 +199,13 @@ async function autoLogin(_retried = false): Promise<boolean> {
     loginStatus = result.code;
 
     if (hasFlag(result.code, LoginStatusFlags.SUCCESS)) {
-      // 写回本地（你此处已确保 db 存在）
       const tx = db.transaction([CONTEXT_STORE.NAME], "readwrite");
       const store = tx.objectStore(CONTEXT_STORE.NAME);
 
-      if (result.deviceId) {
+      if (result.deviceId && result.deviceId !== data.deviceId) {
         await store.put(result.deviceId, CONTEXT_STORE.KEY.DEVICE_ID);
       }
+
       if (result.deviceToken) {
         await store.put(result.deviceToken, CONTEXT_STORE.KEY.DEVICE_TOKEN);
       }
@@ -226,7 +225,7 @@ async function autoLogin(_retried = false): Promise<boolean> {
       await initSessionCrypto();
       return autoLogin(true);
     }
-
+    
     return false;
 
   } catch (err) {
